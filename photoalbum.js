@@ -5,7 +5,7 @@ var os = require('os');
 var fs = require('fs');
 var path = require('path');
 var jade = require('jade');
-
+var im = require('imagemagick');
 
 
 
@@ -14,8 +14,24 @@ var genIndex = function (cfg) {
 
     var fn = jade.compile(j);
 
+    var i;
+    var o = {
+        width: 256,
+    };
+    for (i in cfg.images) {
+        var img = cfg.images[i];
+        img._name = i;
+        o.srcPath = img.path;
+        img._thumb_name = 'thumb_'+i+'.jpg';
+        o.dstPath = path.join(cfg.out, img._thumb_name);
+        /* call imagemagick */
+        console.log(img);
+        im.resize(o, function(err, stdout, stderr) {
+            if (err) throw err;
+            console.log('resized done');
+        });
+    }
     var html = fn({pics: cfg.images});
-    console.log(html);
 
     var indexPath = path.join(cfg.out, 'index.html');
     fs.writeFile(indexPath, html, function(err) {
