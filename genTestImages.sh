@@ -8,5 +8,5 @@ fi
 
 for I in `seq 1 $1`
 do
-    convert -size 3072x2304 -gravity center label:$I in/IMG_$I.jpg
+    convert -size 3072x2304 -gravity center label:$I in/IMG_`printf '%.06i' $I`.jpg
 done
