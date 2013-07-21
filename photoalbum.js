@@ -7,6 +7,46 @@ var path = require('path');
 var jade = require('jade');
 var im = require('imagemagick');
 
+var images = [];
+
+var setup = function (cfg) {
+    var copy = function(filename) {
+        var source = path.join('htdocs', filename);
+        var dest = path.join(cfg.out, filename);
+        var data = fs.readFileSync(source);
+        fs.writeFile(dest, data, function(err) {
+            if (err) {
+                throw (err);
+            }
+        });
+    }
+    copy('index.html');
+    copy('jquery.min.js');
+};
+
+var genThumbs = function (cfg) {
+    var i;
+    for (i in cfg.images) {
+        var img = cfg.images[i];
+        var o = {
+            width: 256,
+        };
+        img._name = i;
+        o.srcPath = img.path;
+        img._thumb_name = 'thumb_'+i+'.jpg';
+        o.dstPath = path.join(cfg.out, img._thumb_name);
+        /* call imagemagick */
+        im.resize(o, function(err, stdout, stderr) {
+            if (err) throw err;
+            im.identify(o.dstPath, function(err, features) {
+                if (err) throw err;
+                if (!images[i]) images[i] = {};
+                images[i].th_w = features.width;
+                images[i].th_h = features.height;
+            });
+        });
+    }
+};
 
 
 var genIndex = function (cfg) {
@@ -25,10 +65,8 @@ var genIndex = function (cfg) {
         img._thumb_name = 'thumb_'+i+'.jpg';
         o.dstPath = path.join(cfg.out, img._thumb_name);
         /* call imagemagick */
-        console.log(img);
         im.resize(o, function(err, stdout, stderr) {
             if (err) throw err;
-            console.log('resized done');
         });
     }
     var html = fn({pics: cfg.images});
@@ -42,6 +80,14 @@ var genIndex = function (cfg) {
 };
 
 
+var genJSONs = function (cfg, images) {
+    var jsonPath = path.join(cfg.out, 'images.json');
+    fs.writeFile(jsonPath, JSON.stringify(images, null, 4), function(err) {
+        if (err) {
+            throw (err);
+        }
+    });
+};
 
 
 
@@ -62,4 +108,7 @@ if (args.length != 1) {
 var data = fs.readFileSync(args[0]);
 var cfg = JSON.parse(data);
 
-genIndex(cfg);
+//genIndex(cfg);
+setup(cfg);
+genThumbs(cfg);
+genJSONs(cfg, images);
