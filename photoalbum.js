@@ -8,8 +8,10 @@ var jade = require('jade');
 var im = require('imagemagick');
 
 var images = [];
+var NB_WORKERS = 100;
 
 var setup = function (cfg) {
+    /* TODO: check file dates, do 'à la' make */
     var copy = function(filename) {
         var source = path.join('htdocs', filename);
         var dest = path.join(cfg.out, filename);
@@ -23,36 +25,66 @@ var setup = function (cfg) {
     copy('index.html');
     copy('jquery.min.js');
     copy('photoalbum.js');
+    copy('photoalbum.css');
 };
 
-var genThumbs = function (cfg, onDone) {
-    var i;
-    var done = 0;
-    cfg.images.forEach(function (img, i) {
-        var o = {
-            width: 256,
-        };
-        img._name = i;
-        o.srcPath = img.path;
-        img._thumb_name = 'thumb_'+i+'.jpg';
-        o.dstPath = path.join(cfg.out, img._thumb_name);
-        /* call imagemagick */
-        im.resize(o, function(err, stdout, stderr) {
-            if (err) throw err;
-            im.identify(o.dstPath, function(err, features) {
-                if (err) throw err;
-                if (!images[i]) images[i] = {};
-                images[i].th_w = features.width;
-                images[i].th_h = features.height;
+var done = 0;
 
-                done++;
-                console.log(done + '/' + cfg.images.length);
-                if (done == cfg.images.length) {
-                    onDone();
-                }
-            });
+var genThumb = function (cfg, pos, onDone) {
+    var o = {
+        width: 256,
+    };
+    var img = cfg.images[pos];
+    if (!img) {
+        return;
+    }
+    img._name = pos;
+    o.srcPath = img.path;
+    img._thumb_name = 'thumb_' + pos + '.jpg';
+    o.dstPath = path.join(cfg.out, img._thumb_name);
+    /* call imagemagick */
+    im.resize(o, function(err, stdout, stderr) {
+        if (err) throw err;
+        im.identify(o.dstPath, function(err, features) {
+            if (err) throw err;
+            if (!images[pos]) images[pos] = {};
+            images[pos].th_w = features.width;
+            images[pos].th_h = features.height;
+
+            done++;
+
+            console.log(done + '/' + cfg.images.length);
+
+            if (pos + NB_WORKERS < cfg.images.length) {
+                genThumb(cfg, pos + NB_WORKERS, onDone);
+            } else
+            if (done == cfg.images.length) {
+                onDone();
+            }
         });
     });
+};
+
+
+
+var genJSONs = function (cfg, images) {
+    var jsonPath = path.join(cfg.out, 'images.json');
+    fs.writeFile(jsonPath, JSON.stringify(images, null, 4), function(err) {
+        if (err) {
+            throw (err);
+        }
+    });
+};
+
+var main = function (cfg) {
+    var i;
+
+    var onDone = function () {
+        genJSONs(cfg, images);
+    };
+    for (i = 0; i < NB_WORKERS; i++) {
+        genThumb(cfg, i, onDone);
+    }
 };
 
 
@@ -87,16 +119,6 @@ var genIndex = function (cfg) {
 };
 
 
-var genJSONs = function (cfg, images) {
-    var jsonPath = path.join(cfg.out, 'images.json');
-    fs.writeFile(jsonPath, JSON.stringify(images, null, 4), function(err) {
-        if (err) {
-            throw (err);
-        }
-    });
-};
-
-
 
 
 
@@ -115,8 +137,5 @@ if (args.length != 1) {
 var data = fs.readFileSync(args[0]);
 var cfg = JSON.parse(data);
 
-//genIndex(cfg);
-setup(cfg);
-genThumbs(cfg, function () {
-    genJSONs(cfg, images);
-});
+//setup(cfg);
+main(cfg);
