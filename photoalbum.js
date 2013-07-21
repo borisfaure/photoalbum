@@ -9,6 +9,7 @@ var im = require('imagemagick');
 
 var images = [];
 var NB_WORKERS = 100;
+var IMAGES_PER_JSON = 100;
 
 var setup = function (cfg) {
     /* TODO: check file dates, do 'à la' make */
@@ -68,12 +69,25 @@ var genThumb = function (cfg, pos, onDone) {
 
 
 var genJSONs = function (cfg, images) {
-    var jsonPath = path.join(cfg.out, 'images.json');
-    fs.writeFile(jsonPath, JSON.stringify(images, null, 4), function(err) {
-        if (err) {
-            throw (err);
+    var l = [];
+    var i;
+    for (i = 0; i < Math.ceil(images.length / IMAGES_PER_JSON); i++) {
+        var o = {
+            total: images.length,
+            images: []
+        };
+        var j;
+        var m = Math.min(IMAGES_PER_JSON, o.total - i * IMAGES_PER_JSON);
+        for (j = 0; j < m; j++) {
+            o.images.push(images[i * IMAGES_PER_JSON + j]);
         }
-    });
+        var jsonPath = path.join(cfg.out, 'images_' + i + '.json');
+        fs.writeFile(jsonPath, JSON.stringify(o, null, 4), function(err) {
+            if (err) {
+                throw (err);
+            }
+        });
+    }
 };
 
 var main = function (cfg) {
