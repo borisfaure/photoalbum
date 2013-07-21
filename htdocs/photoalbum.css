@@ -1,0 +1,23 @@
+body {
+    background: #333;
+}
+
+#thumbs {
+    text-align: center;
+}
+
+#thumbs ul {
+    list-style: none;
+}
+
+#thumbs li {
+    width: 256;
+    position: relative;
+    margin-right: 7px;
+    margin-bottom: 14px;
+    display: inline-block;
+}
+
+#thumbs li img {
+    vertical-align: middle;
+}
