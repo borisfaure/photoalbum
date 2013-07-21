@@ -22,12 +22,13 @@ var setup = function (cfg) {
     }
     copy('index.html');
     copy('jquery.min.js');
+    copy('photoalbum.js');
 };
 
-var genThumbs = function (cfg) {
+var genThumbs = function (cfg, onDone) {
     var i;
-    for (i in cfg.images) {
-        var img = cfg.images[i];
+    var done = 0;
+    cfg.images.forEach(function (img, i) {
         var o = {
             width: 256,
         };
@@ -43,9 +44,15 @@ var genThumbs = function (cfg) {
                 if (!images[i]) images[i] = {};
                 images[i].th_w = features.width;
                 images[i].th_h = features.height;
+
+                done++;
+                console.log(done + '/' + cfg.images.length);
+                if (done == cfg.images.length) {
+                    onDone();
+                }
             });
         });
-    }
+    });
 };
 
 
@@ -110,5 +117,6 @@ var cfg = JSON.parse(data);
 
 //genIndex(cfg);
 setup(cfg);
-genThumbs(cfg);
-genJSONs(cfg, images);
+genThumbs(cfg, function () {
+    genJSONs(cfg, images);
+});
