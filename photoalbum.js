@@ -27,11 +27,20 @@ var setup = function (cfg) {
     copy('jquery.min.js');
     copy('photoalbum.js');
     copy('photoalbum.css');
+
+    var mkdir = function (dir) {
+        fs.mkdir(path.join(cfg.out, dir));
+    };
+    mkdir('json');
+    mkdir('large');
+    mkdir('thumb');
+    mkdir('full');
+
 };
 
 var done = 0;
 
-var genThumb = function (cfg, pos, onDone) {
+var dealImage = function (cfg, pos, onDone) {
     var o = {
         width: 256,
     };
@@ -41,29 +50,74 @@ var genThumb = function (cfg, pos, onDone) {
     }
     img._name = pos;
     o.srcPath = img.path;
-    img._thumb_name = 'thumb_' + pos + '.jpg';
-    o.dstPath = path.join(cfg.out, img._thumb_name);
-    /* call imagemagick */
-    im.resize(o, function(err, stdout, stderr) {
-        if (err) throw err;
-        im.identify(o.dstPath, function(err, features) {
-            if (err) throw err;
-            if (!images[pos]) images[pos] = {};
-            images[pos].th_w = features.width;
-            images[pos].th_h = features.height;
 
-            done++;
+    var finish = function () {
 
-            console.log(done + '/' + cfg.images.length);
+        images[pos].l = cfg.legend;
 
-            if (pos + NB_WORKERS < cfg.images.length) {
-                genThumb(cfg, pos + NB_WORKERS, onDone);
-            } else
-            if (done == cfg.images.length) {
-                onDone();
+        done++;
+
+        console.log(done + '/' + cfg.images.length);
+
+        if (pos + NB_WORKERS < cfg.images.length) {
+            dealImage(cfg, pos + NB_WORKERS, onDone);
+        } else if (done == cfg.images.length) {
+            onDone();
+        }
+    };
+
+    var full = function () {
+        var source = img.path;
+        var dest = path.join(cfg.out, 'full',  pos + '.jpg');
+        var data = fs.readFileSync(source);
+        fs.writeFile(dest, data, function(err) {
+            if (err) {
+                throw (err);
             }
         });
-    });
+
+        finish();
+    };
+
+    var large = function () {
+        o.dstPath = path.join(cfg.out, 'large', pos + '.jpg');
+        o.width = 1024;
+        o.heigth = 768;
+
+        /* call imagemagick */
+        im.resize(o, function(err, stdout, stderr) {
+            if (err) throw err;
+            im.identify(o.dstPath, function(err, features) {
+                if (err) throw err;
+                if (!images[pos]) images[pos] = {};
+
+                images[pos].l_w = features.width;
+                images[pos].l_h = features.height;
+
+                full();
+            });
+        });
+    };
+
+    // Generate thumbnail
+    {
+        o.dstPath = path.join(cfg.out, 'thumb', pos + '.jpg');
+
+        /* call imagemagick */
+        im.resize(o, function(err, stdout, stderr) {
+            if (err) throw err;
+            im.identify(o.dstPath, function(err, features) {
+                if (err) throw err;
+                if (!images[pos]) images[pos] = {};
+
+                images[pos].th_w = features.width;
+                images[pos].th_h = features.height;
+
+                large();
+            });
+        });
+    }
+
 };
 
 
@@ -81,7 +135,7 @@ var genJSONs = function (cfg, images) {
         for (j = 0; j < m; j++) {
             o.images.push(images[i * IMAGES_PER_JSON + j]);
         }
-        var jsonPath = path.join(cfg.out, 'images_' + i + '.json');
+        var jsonPath = path.join(cfg.out, 'json', 'images_' + i + '.json');
         fs.writeFile(jsonPath, JSON.stringify(o, null, 4), function(err) {
             if (err) {
                 throw (err);
@@ -97,7 +151,7 @@ var main = function (cfg) {
         genJSONs(cfg, images);
     };
     for (i = 0; i < NB_WORKERS; i++) {
-        genThumb(cfg, i, onDone);
+        dealImage(cfg, i, onDone);
     }
 };
 
