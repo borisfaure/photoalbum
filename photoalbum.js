@@ -27,6 +27,8 @@ var setup = function (cfg) {
     copy('jquery.min.js');
     copy('photoalbum.js');
     copy('photoalbum.css');
+    copy('prev.png');
+    copy('next.png');
 
     var mkdir = function (dir) {
         fs.mkdir(path.join(cfg.out, dir));
