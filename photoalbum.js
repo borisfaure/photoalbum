@@ -4,7 +4,6 @@ var util = require('util');
 var os = require('os');
 var fs = require('fs');
 var path = require('path');
-var jade = require('jade');
 var im = require('imagemagick');
 
 var NB_WORKERS = 100;
@@ -236,34 +235,6 @@ var doAll = function (cfg, genJSON) {
     }
 };
 
-
-var genIndex = function (cfg) {
-    var j = fs.readFileSync('template/index.haml');
-
-    var fn = jade.compile(j);
-
-    var i;
-    var o = {
-        width: 256,
-    };
-    var errFn = function (err) {
-        if (err) {
-            throw (err);
-        }
-    };
-    for (i in cfg.images) {
-        var img = cfg.images[i];
-        o.srcPath = img.path;
-        img._thumb_name = 'thumb_'+i+'.jpg';
-        o.dstPath = path.join(cfg.out, img._thumb_name);
-        /* call imagemagick */
-        im.resize(o, errFn);
-    }
-    var html = fn({pics: cfg.images});
-
-    var indexPath = path.join(cfg.out, 'index.html');
-    fs.writeFile(indexPath, html, errFn);
-};
 
 var genConfig = function(inPath, cfgPath) {
     var json = {
