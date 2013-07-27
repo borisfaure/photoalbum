@@ -22,7 +22,6 @@ var setup = function (cfg) {
             }
         });
     };
-    copy('index.html');
     copy('jquery.min.js');
     copy('photoalbum.js');
     copy('photoalbum.css');
@@ -30,12 +29,28 @@ var setup = function (cfg) {
     copy('next.png');
 
     var mkdir = function (dir) {
-        fs.mkdir(path.join(cfg.out, dir));
+        var p = path.join(cfg.out, dir);
+        fs.stat(p, function (err) {
+            if (err) {
+                fs.mkdir(p);
+            }
+        });
     };
     mkdir('json');
     mkdir('large');
     mkdir('thumb');
     mkdir('full');
+
+
+    var source = path.join('htdocs/index.html');
+    var dest = path.join(cfg.out, 'index.html');
+    var data = fs.readFileSync(source, {encoding: 'UTF-8'});
+    data = data.replace(/%%TITLE%%/g, cfg.title);
+    fs.writeFile(dest, data, function(err) {
+        if (err) {
+            throw (err);
+        }
+    });
 };
 
 
