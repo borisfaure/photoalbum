@@ -1,5 +1,12 @@
 body {
     background: #333;
+    color: #ddd;
+    margin: 0;
+}
+
+div {
+    margin: 0;
+    padding: 0;
 }
 
 #thumbs {
@@ -20,4 +27,66 @@ body {
 
 #thumbs li img {
     vertical-align: middle;
+    cursor: pointer;
+}
+
+#diaporama {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+#diaporama div {
+    display: block;
+}
+
+#diaporama div.nav {
+    background-color: #228;
+    margin: 0px auto;
+    top: 0px;
+    width: 15%;
+    height: auto;
+    background-color: #aaa;
+    position: absolute;
+    overflow: hidden;
+}
+#diaporama div#prev {
+    left: 0px;
+    width: 15%;
+}
+#diaporama div#next {
+    right: 0px;
+    width: 15%;
+}
+
+#diaporama div img#main {
+    background-color: #822;
+    position: relative;
+    margin: 0px auto;
+    display: block;
+    width: auto;
+    height: 100%;
+}
+
+#diaporama div.nav div {
+    position: absolute;
+    top: 50%;
+    width: 32px;
+    height: 32px;
+    margin-top: -32px;
+}
+#diaporama #prev div {
+    background-image: url('prev.png');
+}
+#diaporama #next div {
+    background-image: url('next.png');
+    right: 0px;
+}
+
+#diaporama #legend {
+    margin: 0px 0px 0px 0px;
+    background-color: #282;
+}
+#diaporama #legend p {
+    margin: 5px 0px;
 }
