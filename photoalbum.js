@@ -44,8 +44,9 @@ var setup = function (cfg) {
     var source = path.join('htdocs/index.html');
     var dest = path.join(cfg.out, 'index.html');
     var data = fs.readFileSync(source, {encoding: 'UTF-8'});
-    data = data.replace(/%%TITLE%%/g, cfg.title);
+    data = data.replace(/%%TITLE%%/g, cfg.title || '');
     data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
+    data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
     fs.writeFile(dest, data, function(err) {
         if (err) {
             throw (err);
@@ -250,6 +251,7 @@ var genConfig = function(inPath, cfgPath) {
             path: p,
             legend: '',
             noGPS: true,
+            lang: 'en'
         };
         json.images.push(o);
     }
