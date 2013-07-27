@@ -8,7 +8,7 @@ var jade = require('jade');
 var im = require('imagemagick');
 
 var NB_WORKERS = 100;
-var IMAGES_PER_JSON = 100;
+var IMAGES_PER_JSON = 50;
 
 var setup = function (cfg) {
     /* TODO: check file dates, do 'à la' make */
@@ -46,80 +46,13 @@ var setup = function (cfg) {
     var dest = path.join(cfg.out, 'index.html');
     var data = fs.readFileSync(source, {encoding: 'UTF-8'});
     data = data.replace(/%%TITLE%%/g, cfg.title);
+    data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
     fs.writeFile(dest, data, function(err) {
         if (err) {
             throw (err);
         }
     });
 };
-
-
-var genImagesTabFromCfg = function (cfg) {
-    var i;
-    var done = 0;
-    var images = [];
-    var onDone = function () {
-        genJSONs(cfg, images);
-    };
-    var imageSizing = function (cfg, pos, onDone) {
-        var img = cfg.images[pos];
-        if (!img) {
-            return;
-        }
-        o.srcPath = img.path;
-
-        var finish = function () {
-
-            images[pos].l = cfg.legend;
-
-            done++;
-
-            console.log(done + '/' + cfg.images.length);
-
-            if (pos + NB_WORKERS < cfg.images.length) {
-                imageSizing(cfg, pos + NB_WORKERS, onDone);
-            } else if (done == cfg.images.length) {
-                onDone();
-            }
-        };
-
-        var large = function () {
-            var dstPath = path.join(cfg.out, 'large', pos + '.jpg');
-
-            /* call imagemagick */
-            im.identify(o.dstPath, function(err, features) {
-                if (err) throw err;
-                if (!images[pos]) images[pos] = {};
-
-                images[pos].l_w = features.width;
-                images[pos].l_h = features.height;
-
-                finish();
-            });
-        };
-
-        {
-            var dstPath = path.join(cfg.out, 'thumb', pos + '.jpg');
-
-            /* call imagemagick */
-            im.identify(o.dstPath, function(err, features) {
-                if (err) throw err;
-                if (!images[pos]) images[pos] = {};
-
-                images[pos].th_w = features.width;
-                images[pos].th_h = features.height;
-
-                large();
-            });
-        }
-    };
-    for (i = 0; i < NB_WORKERS; i++) {
-        imageSizing(cfg, i, onDone);
-    }
-
-};
-
-
 
 var genJSONs = function (cfg, images) {
     var l = [];
@@ -143,6 +76,70 @@ var genJSONs = function (cfg, images) {
         fs.writeFile(jsonPath, JSON.stringify(o, null, 4), errFn);
     }
 };
+
+
+var genImagesTabFromCfg = function (cfg, onDone) {
+    var i;
+    var done = 0;
+    var images = [];
+    var imageSizing = function (cfg, pos, onDone) {
+        var img = cfg.images[pos];
+        if (!img) {
+            return;
+        }
+
+        var finish = function () {
+
+            images[pos].l = cfg.legend;
+
+            done++;
+
+            console.log(done + '/' + cfg.images.length);
+
+            if (pos + NB_WORKERS < cfg.images.length) {
+                imageSizing(cfg, pos + NB_WORKERS, onDone);
+            } else if (done == cfg.images.length) {
+                onDone(images);
+            }
+        };
+
+        var large = function () {
+            var dstPath = path.join(cfg.out, 'large', pos + '.jpg');
+
+            /* call imagemagick */
+            im.identify(dstPath, function(err, features) {
+                if (err) throw err;
+                if (!images[pos]) images[pos] = {};
+
+                images[pos].l_w = features.width;
+                images[pos].l_h = features.height;
+
+                finish();
+            });
+        };
+
+        {
+            var dstPath = path.join(cfg.out, 'thumb', pos + '.jpg');
+
+            /* call imagemagick */
+            im.identify(dstPath, function(err, features) {
+                if (err) throw err;
+                if (!images[pos]) images[pos] = {};
+
+                images[pos].th_w = features.width;
+                images[pos].th_h = features.height;
+
+                large();
+            });
+        }
+    };
+    for (i = 0; i < NB_WORKERS; i++) {
+        imageSizing(cfg, i, onDone);
+    }
+
+};
+
+
 
 var doAll = function (cfg, genJSON) {
     var i;
@@ -334,8 +331,10 @@ switch (args[0]) {
     break;
   case "genJSONs":
     var cfg = getCfgFromPath(args[1]);
-    var images = genImagesTabFromCfg();
-    genJSONs(cfg, images);
+    var onDone = function (images) {
+        genJSONs(cfg, images);
+    };
+    genImagesTabFromCfg(cfg, onDone);
     break;
   case "genImages":
     var cfg = getCfgFromPath(args[1]);

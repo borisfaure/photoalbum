@@ -1,6 +1,5 @@
 'use strict';
 
-var IMAGES_PER_JSON = 100;
 var totalImages = 0;
 var totalImagesDisplayed = 0;
 var nextJson = 0;
