@@ -7,7 +7,6 @@ var path = require('path');
 var jade = require('jade');
 var im = require('imagemagick');
 
-var images = [];
 var NB_WORKERS = 100;
 var IMAGES_PER_JSON = 100;
 
@@ -22,7 +21,7 @@ var setup = function (cfg) {
                 throw (err);
             }
         });
-    }
+    };
     copy('index.html');
     copy('jquery.min.js');
     copy('photoalbum.js');
@@ -37,58 +36,42 @@ var setup = function (cfg) {
     mkdir('large');
     mkdir('thumb');
     mkdir('full');
-
 };
 
-var done = 0;
 
-var dealImage = function (cfg, pos, onDone) {
-    var o = {
-        width: 256,
+var genImagesTabFromCfg = function (cfg) {
+    var i;
+    var done = 0;
+    var images = [];
+    var onDone = function () {
+        genJSONs(cfg, images);
     };
-    var img = cfg.images[pos];
-    if (!img) {
-        return;
-    }
-    img._name = pos;
-    o.srcPath = img.path;
-
-    var finish = function () {
-
-        images[pos].l = cfg.legend;
-
-        done++;
-
-        console.log(done + '/' + cfg.images.length);
-
-        if (pos + NB_WORKERS < cfg.images.length) {
-            dealImage(cfg, pos + NB_WORKERS, onDone);
-        } else if (done == cfg.images.length) {
-            onDone();
+    var imageSizing = function (cfg, pos, onDone) {
+        var img = cfg.images[pos];
+        if (!img) {
+            return;
         }
-    };
+        o.srcPath = img.path;
 
-    var full = function () {
-        var source = img.path;
-        var dest = path.join(cfg.out, 'full',  pos + '.jpg');
-        var data = fs.readFileSync(source);
-        fs.writeFile(dest, data, function(err) {
-            if (err) {
-                throw (err);
+        var finish = function () {
+
+            images[pos].l = cfg.legend;
+
+            done++;
+
+            console.log(done + '/' + cfg.images.length);
+
+            if (pos + NB_WORKERS < cfg.images.length) {
+                imageSizing(cfg, pos + NB_WORKERS, onDone);
+            } else if (done == cfg.images.length) {
+                onDone();
             }
-        });
+        };
 
-        finish();
-    };
+        var large = function () {
+            var dstPath = path.join(cfg.out, 'large', pos + '.jpg');
 
-    var large = function () {
-        o.dstPath = path.join(cfg.out, 'large', pos + '.jpg');
-        o.width = 1024;
-        o.heigth = 768;
-
-        /* call imagemagick */
-        im.resize(o, function(err, stdout, stderr) {
-            if (err) throw err;
+            /* call imagemagick */
             im.identify(o.dstPath, function(err, features) {
                 if (err) throw err;
                 if (!images[pos]) images[pos] = {};
@@ -96,18 +79,14 @@ var dealImage = function (cfg, pos, onDone) {
                 images[pos].l_w = features.width;
                 images[pos].l_h = features.height;
 
-                full();
+                finish();
             });
-        });
-    };
+        };
 
-    // Generate thumbnail
-    {
-        o.dstPath = path.join(cfg.out, 'thumb', pos + '.jpg');
+        {
+            var dstPath = path.join(cfg.out, 'thumb', pos + '.jpg');
 
-        /* call imagemagick */
-        im.resize(o, function(err, stdout, stderr) {
-            if (err) throw err;
+            /* call imagemagick */
             im.identify(o.dstPath, function(err, features) {
                 if (err) throw err;
                 if (!images[pos]) images[pos] = {};
@@ -117,7 +96,10 @@ var dealImage = function (cfg, pos, onDone) {
 
                 large();
             });
-        });
+        }
+    };
+    for (i = 0; i < NB_WORKERS; i++) {
+        imageSizing(cfg, i, onDone);
     }
 
 };
@@ -127,6 +109,11 @@ var dealImage = function (cfg, pos, onDone) {
 var genJSONs = function (cfg, images) {
     var l = [];
     var i;
+    var errFn = function (err) {
+        if (err) {
+            throw (err);
+        }
+    };
     for (i = 0; i < Math.ceil(images.length / IMAGES_PER_JSON); i++) {
         var o = {
             total: images.length,
@@ -138,19 +125,99 @@ var genJSONs = function (cfg, images) {
             o.images.push(images[i * IMAGES_PER_JSON + j]);
         }
         var jsonPath = path.join(cfg.out, 'json', 'images_' + i + '.json');
-        fs.writeFile(jsonPath, JSON.stringify(o, null, 4), function(err) {
-            if (err) {
-                throw (err);
-            }
-        });
+        fs.writeFile(jsonPath, JSON.stringify(o, null, 4), errFn);
     }
 };
 
-var main = function (cfg) {
+var doAll = function (cfg, genJSON) {
     var i;
+    var done = 0;
+    var images = [];
+
+    var dealImage = function (cfg, pos, onDone) {
+        var o = {
+            width: 256,
+        };
+        var img = cfg.images[pos];
+        if (!img) {
+            return;
+        }
+        o.srcPath = img.path;
+
+        var finish = function () {
+
+            images[pos].l = cfg.legend;
+
+            done++;
+
+            console.log(done + '/' + cfg.images.length);
+
+            if (pos + NB_WORKERS < cfg.images.length) {
+                dealImage(cfg, pos + NB_WORKERS, onDone);
+            } else if (done == cfg.images.length) {
+                onDone();
+            }
+        };
+
+        var full = function () {
+            var source = img.path;
+            var dest = path.join(cfg.out, 'full',  pos + '.jpg');
+            var data = fs.readFileSync(source);
+            fs.writeFile(dest, data, function(err) {
+                if (err) {
+                    throw (err);
+                }
+            });
+
+            finish();
+        };
+
+        var large = function () {
+            o.dstPath = path.join(cfg.out, 'large', pos + '.jpg');
+            o.width = 1024;
+            o.heigth = 768;
+
+            /* call imagemagick */
+            im.resize(o, function(err, stdout, stderr) {
+                if (err) throw err;
+                im.identify(o.dstPath, function(err, features) {
+                    if (err) throw err;
+                    if (!images[pos]) images[pos] = {};
+
+                    images[pos].l_w = features.width;
+                    images[pos].l_h = features.height;
+
+                    full();
+                });
+            });
+        };
+
+        // Generate thumbnail
+        {
+            o.dstPath = path.join(cfg.out, 'thumb', pos + '.jpg');
+
+            /* call imagemagick */
+            im.resize(o, function(err, stdout, stderr) {
+                if (err) throw err;
+                im.identify(o.dstPath, function(err, features) {
+                    if (err) throw err;
+                    if (!images[pos]) images[pos] = {};
+
+                    images[pos].th_w = features.width;
+                    images[pos].th_h = features.height;
+
+                    large();
+                });
+            });
+        }
+
+    };
+
 
     var onDone = function () {
-        genJSONs(cfg, images);
+        if (genJSON) {
+            genJSONs(cfg, images);
+        }
     };
     for (i = 0; i < NB_WORKERS; i++) {
         dealImage(cfg, i, onDone);
@@ -167,21 +234,44 @@ var genIndex = function (cfg) {
     var o = {
         width: 256,
     };
+    var errFn = function (err) {
+        if (err) {
+            throw (err);
+        }
+    };
     for (i in cfg.images) {
         var img = cfg.images[i];
-        img._name = i;
         o.srcPath = img.path;
         img._thumb_name = 'thumb_'+i+'.jpg';
         o.dstPath = path.join(cfg.out, img._thumb_name);
         /* call imagemagick */
-        im.resize(o, function(err, stdout, stderr) {
-            if (err) throw err;
-        });
+        im.resize(o, errFn);
     }
     var html = fn({pics: cfg.images});
 
     var indexPath = path.join(cfg.out, 'index.html');
-    fs.writeFile(indexPath, html, function(err) {
+    fs.writeFile(indexPath, html, errFn);
+};
+
+var genConfig = function(inPath, cfgPath) {
+    var json = {
+        images: [],
+        out: 'out/',
+        title: 'My pics'
+    };
+
+    var dirs = fs.readdirSync(inPath);
+    for (var f in dirs) {
+        var p = path.join(inPath, dirs[f]);
+        var o = {
+            path: p,
+            legend: '',
+            noGPS: true,
+        };
+        json.images.push(o);
+    }
+
+    fs.writeFile(cfgPath, JSON.stringify(json, null, 4), function(err) {
         if (err) {
             throw (err);
         }
@@ -190,22 +280,57 @@ var genIndex = function (cfg) {
 
 
 
-
-
-var args = process.argv.splice(2);
-
+/* MAIN */
 
 var usage = function() {
-    util.print("photoalbum config_file\n");
+    util.print("usage: photoalbum command\n\n"
+    + "command is one of the following:\n"
+    + "genConfig input_directory output_config_file\n"
+    + "  generate a configuration files about files in input_directory\n"
+    + "setup config_file\n"
+    + "  setup files in output directory\n"
+    + "genJSONs config_file\n"
+    + "  generate the JSONs files used by the web client\n"
+    + "genImages\n"
+    + "  generates thumbnails/large images and copy the full-size images\n"
+    + "all config_file\n"
+    + "  execute setup/genJSONs/genImages");
     process.exit(1);
 };
 
-if (args.length != 1) {
+var args = process.argv.splice(2);
+if (args.length < 2) {
     usage();
 }
 
-var data = fs.readFileSync(args[0]);
-var cfg = JSON.parse(data);
 
-//setup(cfg);
-main(cfg);
+var getCfgFromPath = function (path) {
+    var data = fs.readFileSync(path);
+    return JSON.parse(data);
+};
+
+switch (args[0]) {
+  case "genConfig":
+    genConfig(args[0], args[1]);
+    break;
+  case "setup":
+    var cfg = getCfgFromPath(args[1]);
+    setup(cfg);
+    break;
+  case "genJSONs":
+    var cfg = getCfgFromPath(args[1]);
+    var images = genImagesTabFromCfg();
+    genJSONs(cfg, images);
+    break;
+  case "genImages":
+    var cfg = getCfgFromPath(args[1]);
+    doAll(cfg, false);
+    break;
+  case "all":
+    var cfg = getCfgFromPath(args[1]);
+    setup(cfg);
+    doAll(cfg, true);
+    break;
+  default:
+    usage();
+}
