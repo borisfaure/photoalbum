@@ -22,6 +22,7 @@ var setup = function (cfg) {
         });
     };
     copy('jquery.min.js');
+    copy('markdown.js');
     copy('photoalbum.js');
     copy('photoalbum.css');
     copy('prev.png');
@@ -80,6 +81,16 @@ var genJSONs = function (cfg, images) {
     }
 };
 
+var genLegend = function (cfg, pos, images) {
+    var img = cfg.images[pos];
+    if (img.legend) {
+        if (typeof img.legend === "string") {
+            images[pos].l = img.legend;
+        } else {
+            images[pos].l = img.legend.join('\n');
+        }
+    }
+};
 
 var genImagesTabFromCfg = function (cfg, onDone) {
     var i;
@@ -93,7 +104,7 @@ var genImagesTabFromCfg = function (cfg, onDone) {
 
         var finish = function () {
 
-            images[pos].l = cfg.legend;
+            genLegend(cfg, pos, images);
 
             done++;
 
@@ -161,7 +172,7 @@ var doAll = function (cfg, genJSON) {
 
         var finish = function () {
 
-            images[pos].l = cfg.legend;
+            genLegend(cfg, pos, images);
 
             done++;
 

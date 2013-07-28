@@ -9,9 +9,7 @@ var isDisplayingThumbnails = true;
 var images = [];
 
 var setupDiaporama = function (pos) {
-    $('#thumbs').hide();
-    $('#loading').hide();
-    $('#downloadMore').hide();
+    $('.thumb').hide();
 
     var $diaporama = $('#diaporama');
 
@@ -52,11 +50,10 @@ var setupDiaporama = function (pos) {
     var $legend = $('<div />', {
         id: 'legend'
     });
-    $('<p />', {text: '1/5) YOOOOOOOOOOOO'}).appendTo($legend);
-    $('<p />', {text: '2/5) YOOOOOOOOOOOO'}).appendTo($legend);
-    $('<p />', {text: '3/5) YOOOOOOOOOOOO'}).appendTo($legend);
-    $('<p />', {text: '4/5) YOOOOOOOOOOOO'}).appendTo($legend);
-    $('<p />', {text: '5/5) YOOOOOOOOOOOO'}).appendTo($legend);
+    if (img.l) {
+        $legend.html(markdown.toHTML(img.l));
+    }
+
 
     $diaporama.append($imgContainer, $prev, $next, $legend);
 
@@ -94,6 +91,9 @@ var setupDiaporama = function (pos) {
 
 
         $legend.empty();
+        if (img.l) {
+            $legend.html(markdown.toHTML(img.l));
+        }
 
 
         checkPos();
@@ -107,7 +107,7 @@ var setupDiaporama = function (pos) {
     };
     $prev.click(prev);
     var next = function() {
-        pos--;
+        pos++;
         updateImage();
     };
     $next.click(next);
