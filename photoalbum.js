@@ -9,6 +9,20 @@ var im = require('imagemagick');
 var NB_WORKERS = 100;
 var IMAGES_PER_JSON = 50;
 
+
+var getJSONFromPath = function (path) {
+    var data = fs.readFileSync(path);
+    return JSON.parse(data);
+};
+
+var getTranslations = function (lang) {
+    if (!lang) {
+        return {};
+    }
+    var translations = getJSONFromPath('translations.json');
+    return translations[lang] || {};
+};
+
 var setup = function (cfg) {
     /* TODO: check file dates, do 'à la' make */
     var copy = function(filename) {
@@ -50,8 +64,15 @@ var setup = function (cfg) {
     data = data.replace(/%%TITLE%%/g, cfg.title || '');
     data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
     data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
-    data = data.replace(/%%DOWNLOAD_MORE%%/g,
-                        cfg.downloadMore || 'Download more images');
+    var translations = getTranslations(cfg.lang);
+
+    var _ = function (str) {
+        return translations[str] || str;
+    };
+    data = data.replace(/%%DOWNLOAD_MORE%%/g, _('Download more images'));
+    data = data.replace(/%%TRANSLATIONS%%/g,
+                        JSON.stringify(translations, null, 1));
+
     fs.writeFile(dest, data, function(err) {
         if (err) {
             throw (err);
@@ -305,32 +326,27 @@ if (args.length < 2) {
 }
 
 
-var getCfgFromPath = function (path) {
-    var data = fs.readFileSync(path);
-    return JSON.parse(data);
-};
-
 switch (args[0]) {
   case "genConfig":
     genConfig(args[0], args[1]);
     break;
   case "setup":
-    var cfg = getCfgFromPath(args[1]);
+    var cfg = getJSONFromPath(args[1]);
     setup(cfg);
     break;
   case "genJSONs":
-    var cfg = getCfgFromPath(args[1]);
+    var cfg = getJSONFromPath(args[1]);
     var onDone = function (images) {
         genJSONs(cfg, images);
     };
     genImagesTabFromCfg(cfg, onDone);
     break;
   case "genImages":
-    var cfg = getCfgFromPath(args[1]);
+    var cfg = getJSONFromPath(args[1]);
     doAll(cfg, false);
     break;
   case "all":
-    var cfg = getCfgFromPath(args[1]);
+    var cfg = getJSONFromPath(args[1]);
     setup(cfg);
     doAll(cfg, true);
     break;

@@ -17,7 +17,7 @@ var backToThumbs = function () {
 };
 
 var _ = function (str) {
-    return str;
+    return translations[str] || str;
 };
 
 var setupDiaporama = function (pos) {
