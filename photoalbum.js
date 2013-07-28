@@ -26,6 +26,7 @@ var setup = function (cfg) {
     copy('photoalbum.css');
     copy('prev.png');
     copy('next.png');
+    copy('loading.gif');
 
     var mkdir = function (dir) {
         var p = path.join(cfg.out, dir);

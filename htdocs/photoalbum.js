@@ -146,6 +146,7 @@ var downloadMore = function () {
         return;
     }
     downloading = true;
+    $('#loading').show();
     var file = 'json/images_' + nextJson + '.json';
     $.get(file, function (data) {
         totalImages = data.total;
@@ -155,6 +156,7 @@ var downloadMore = function () {
         appendThumbs(data.images);
         nextJson++;
         downloading = false;
+        $('#loading').hide();
     });
 
 };
