@@ -84,6 +84,7 @@ div {
     width: 32px;
     height: 32px;
     margin-top: -32px;
+    cursor: pointer;
 }
 #diaporama #prev div {
     background-image: url('prev.png');
@@ -99,4 +100,9 @@ div {
 }
 #diaporama #legend p {
     margin: 5px 0px;
+}
+
+#toolbar {
+    float: right;
+    cursor: pointer;
 }

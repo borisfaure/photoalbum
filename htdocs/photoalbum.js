@@ -8,6 +8,18 @@ var isDisplayingThumbnails = true;
 
 var images = [];
 
+var backToThumbs = function () {
+    var $diaporama = $('#diaporama');
+    $diaporama.empty();
+    $('.thumb').show();
+    $('#downloadMore').hide();
+    $('#loading').hide();
+};
+
+var _ = function (str) {
+    return str;
+};
+
 var setupDiaporama = function (pos) {
     $('.thumb').hide();
 
@@ -47,21 +59,37 @@ var setupDiaporama = function (pos) {
     });
     $('<div/>').appendTo($next);
 
+    var $bottom = $('<div />', {
+        id: 'bottom'
+    });
+    var $toolbar = $('<div />', {
+        id: 'toolbar'
+    });
+    var $thumbs = $('<img />', {
+        src: 'thumbs.png',
+        width: 32,
+        height: 32,
+        title: _('Show Thumbnails')
+    }).click(backToThumbs);
+    $toolbar.append($thumbs);
     var $legend = $('<div />', {
         id: 'legend'
     });
     if (img.l) {
         $legend.html(markdown.toHTML(img.l));
     }
+    $bottom.append($toolbar, $legend);
 
 
-    $diaporama.append($imgContainer, $prev, $next, $legend);
+    $diaporama.append($imgContainer, $prev, $next, $bottom);
 
     $('body').append($diaporama);
 
     var resizeFn = function() {
-        console.log($(window).height(), $legend.height());
-        var newHeigth = $(window).height() - $legend.height() - 5;
+        console.log($(window).height(), $bottom.height(), $toolbar.height());
+        var newHeigth = $(window).height()
+                      - Math.max($bottom.height(), $toolbar.height())
+                      - 5;
         $imgContainer.height(newHeigth);
         $prev.height(newHeigth);
         $next.height(newHeigth);
