@@ -13,7 +13,7 @@ div {
     padding: 0;
 }
 
-#loading {
+#loading, #downloadMore {
     margin-right: auto;
     margin-left: auto;
     display: block;

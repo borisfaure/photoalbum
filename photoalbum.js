@@ -48,6 +48,8 @@ var setup = function (cfg) {
     data = data.replace(/%%TITLE%%/g, cfg.title || '');
     data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
     data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
+    data = data.replace(/%%DOWNLOAD_MORE%%/g,
+                        cfg.downloadMore || 'Download more images');
     fs.writeFile(dest, data, function(err) {
         if (err) {
             throw (err);
@@ -252,7 +254,8 @@ var genConfig = function(inPath, cfgPath) {
             path: p,
             legend: '',
             noGPS: true,
-            lang: 'en'
+            lang: 'en',
+            downloadMore: 'Download more images'
         };
         json.images.push(o);
     }

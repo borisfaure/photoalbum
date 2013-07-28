@@ -10,6 +10,9 @@ var images = [];
 
 var setupDiaporama = function (pos) {
     $('#thumbs').hide();
+    $('#loading').hide();
+    $('#downloadMore').hide();
+
     var $diaporama = $('#diaporama');
 
     console.log(pos);
@@ -147,6 +150,7 @@ var downloadMore = function () {
     }
     downloading = true;
     $('#loading').show();
+    $('#downloadMore').hide();
     var file = 'json/images_' + nextJson + '.json';
     $.get(file, function (data) {
         totalImages = data.total;
@@ -157,6 +161,9 @@ var downloadMore = function () {
         nextJson++;
         downloading = false;
         $('#loading').hide();
+        if (totalImagesDisplayed < totalImages) {
+            $('#downloadMore').show();
+        }
     });
 
 };
@@ -165,6 +172,8 @@ var downloadMore = function () {
 $(document).ready(function() {
 
     downloadMore();
+
+    $('#downloadMore').click(downloadMore);
 
     $(window).scroll(function (ev) {
         if (downloading) {
