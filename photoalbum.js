@@ -123,6 +123,7 @@ var genImagesTabFromCfg = function (cfg, onDone) {
         if (!img) {
             return;
         }
+        var name = pos + 1;
 
         var finish = function () {
 
@@ -140,7 +141,7 @@ var genImagesTabFromCfg = function (cfg, onDone) {
         };
 
         {
-            var dstPath = path.join(cfg.out, 'thumb', pos + '.jpg');
+            var dstPath = path.join(cfg.out, 'thumb', name + '.jpg');
 
             /* call imagemagick */
             im.identify(dstPath, function(err, features) {
@@ -168,6 +169,7 @@ var doAll = function (cfg, genJSON) {
     var images = [];
 
     var dealImage = function (cfg, pos, onDone) {
+        var name = pos + 1;
         var o = {
             width: 256,
         };
@@ -194,7 +196,7 @@ var doAll = function (cfg, genJSON) {
 
         var full = function () {
             var source = img.path;
-            var dest = path.join(cfg.out, 'full',  pos + '.jpg');
+            var dest = path.join(cfg.out, 'full',  name + '.jpg');
             var data = fs.readFileSync(source);
             fs.writeFile(dest, data, function(err) {
                 if (err) {
@@ -206,7 +208,7 @@ var doAll = function (cfg, genJSON) {
         };
 
         var large = function () {
-            o.dstPath = path.join(cfg.out, 'large', pos + '.jpg');
+            o.dstPath = path.join(cfg.out, 'large', name + '.jpg');
             o.width = 1024;
             o.heigth = 768;
 
@@ -220,7 +222,7 @@ var doAll = function (cfg, genJSON) {
 
         // Generate thumbnail
         {
-            o.dstPath = path.join(cfg.out, 'thumb', pos + '.jpg');
+            o.dstPath = path.join(cfg.out, 'thumb', name + '.jpg');
 
             /* call imagemagick */
             im.resize(o, function(err, stdout, stderr) {

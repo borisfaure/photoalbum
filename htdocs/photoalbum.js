@@ -8,15 +8,20 @@ var title;
 
 var images = [];
 
-var changeHistory = function (pos) {
+/* XXX:
+ * Let arr = [a, b, c],
+ * "order" of a is 1, 2 for b, and 3 for c
+ * "index" of a is 0, 1 for b and 2 for c
+ */
+
+var changeHistory = function (order) {
     var newTitle;
 
-    if (pos === undefined) {
+    if (order === undefined) {
         newTitle = title;
-        pos = 0;
+        order = 0;
     } else {
-        pos++;
-        newTitle = title + ' - ' + pos + '/' + totalImages;
+        newTitle = title + ' - ' + order + '/' + totalImages;
     }
     $('title').text(newTitle);
 
@@ -24,7 +29,7 @@ var changeHistory = function (pos) {
         return;
     }
 
-    history.pushState({pos: pos}, newTitle, '#' + pos);
+    history.pushState({order: order}, newTitle, '#' + order);
 };
 
 var backToThumbs = function () {
@@ -37,25 +42,26 @@ var backToThumbs = function () {
     if (totalImages != totalImagesDisplayed) {
         var jsonBoundary = 0;
         var ul = [];
-        $.each(images, function(pos, img) {
+        $.each(images, function(index, img) {
+            var order = index + 1;
             var $li = $('<li />');
             var $img;
             if (img) {
                 $img = $('<img />', {
-                    src: 'thumb/' + pos + '.jpg',
+                    src: 'thumb/' + order + '.jpg',
                     width: img.th_w,
                     height: img.th_h,
                     alt: img.l
                 });
             } else {
-                if (pos > jsonBoundary) {
+                if (index > jsonBoundary) {
                     jsonBoundary += IMAGES_PER_JSON;
-                    downloadMore(i, updateThumbs);
+                    downloadMore(order, updateThumbs);
                 }
                 $img = $('<img />');
             }
             $img.click(function() {
-                setupDiaporama(pos);
+                setupDiaporama(order);
             });
             $img.appendTo($li);
 
@@ -70,19 +76,21 @@ var _ = function (str) {
     return translations[str] || str;
 };
 
-var setupDiaporama = function (pos) {
-    var checkPos;
+var setupDiaporama = function (order) {
+    var checkOrder;
     var resizeFn;
+
+    var index = order - 1;
 
     $('.thumb').hide();
     isDisplayingThumbnails = false;
 
     var $diaporama = $('#diaporama');
 
-    var img = images[pos];
+    var img = images[index];
     if (!img) {
-        downloadMore(pos, function () {
-            setupDiaporama(pos);
+        downloadMore(order, function () {
+            setupDiaporama(order);
         });
         img = {};
     }
@@ -99,7 +107,7 @@ var setupDiaporama = function (pos) {
 
     var $imgContainer = $('<div />');
     var $img = $('<img />', {
-        src: 'large/' + pos + '.jpg',
+        src: 'large/' + order + '.jpg',
         id: 'main'
     }).appendTo($imgContainer);
 
@@ -144,13 +152,13 @@ var setupDiaporama = function (pos) {
         $next.height(newHeigth);
     };
 
-    checkPos = function () {
-        if (pos == 0) {
+    checkOrder = function () {
+        if (order == 1) {
             $prev.hide();
         } else {
             $prev.show();
         }
-        if (pos == totalImages - 1) {
+        if (order == totalImages) {
             $next.hide();
         } else {
             $next.show();
@@ -159,17 +167,17 @@ var setupDiaporama = function (pos) {
 
     var updateImage = function () {
 
-        img = images[pos];
+        img = images[index];
         if (!img) {
-            downloadMore(pos, function () {
-                setupDiaporama(pos);
+            downloadMore(order, function () {
+                setupDiaporama(order);
             });
             return;
         }
 
         $diaporama.detach();
 
-        $img.attr('src', 'large/' + pos + '.jpg');
+        $img.attr('src', 'large/' + order + '.jpg');
 
 
         $legend.empty();
@@ -177,26 +185,28 @@ var setupDiaporama = function (pos) {
             $legend.html(markdown.toHTML(img.l));
         }
 
-        checkPos();
+        checkOrder();
         $('body').append($diaporama);
         resizeFn();
-        changeHistory(pos);
+        changeHistory(order);
     };
 
     var prev = function() {
-        pos--;
+        order--;
+        index--;
         updateImage();
     };
     $prev.click(prev);
     var next = function() {
-        pos++;
+        order++;
+        index++;
         updateImage();
     };
     $next.click(next);
 
     $(window).resize(resizeFn);
     resizeFn();
-    changeHistory(pos);
+    changeHistory(order);
 };
 
 
@@ -211,23 +221,22 @@ var updateThumbs = function (newJson) {
             var img = images[i];
             var $img;
             var $child = $($children[i]);
+            var order = i + 1;
             if ($child.length) {
                 $img = $($child.children()[0]);
-                $img.attr('src', 'thumb/' + i + '.jpg');
+                $img.attr('src', 'thumb/' + order + '.jpg');
                 $img.attr('width', img.th_w);
                 $img.attr('height', img.th_h);
                 $img.attr('alt', img.l);
             } else {
                 var $li = $('<li />');
-                var _i = i;
                 $img = $('<img />', {
-                    src: 'thumb/' + i + '.jpg',
+                    src: 'thumb/' + order + '.jpg',
                     width: img.th_w,
                     height: img.th_h,
                     alt: img.l
                 }).click(function() {
-                    console.log(_i);
-                    setupDiaporama(_i);
+                    setupDiaporama(order);
                 });
                 $img.appendTo($li);
 
@@ -239,27 +248,32 @@ var updateThumbs = function (newJson) {
     $('#thumbs').append(ul);
 };
 
-var downloadMore = function (pos, onDone) {
+var downloadMore = function (order, onDone) {
     if (totalImages > 0 && totalImages == totalImagesDisplayed) {
+        $('#loading').hide();
+        $('#downloadMore').hide();
         return;
     }
-    var jsonNb = Math.floor(pos / IMAGES_PER_JSON);
+    var index = order - 1;
+    var jsonNb = Math.floor(index / IMAGES_PER_JSON);
     var file = 'json/images_' + jsonNb + '.json';
-    $.get(file, function (data) {
+    $.getJSON(file, function (data) {
         totalImages = data.total;
 
         var i;
         for (i = 0; i < data.images.length; i++) {
-            var p = i + IMAGES_PER_JSON * jsonNb;
-            if (!images[p]) {
-                images[p] = data.images[i];
+            var idx = i + IMAGES_PER_JSON * jsonNb;
+            if (!images[idx]) {
+                images[idx] = data.images[i];
                 totalImagesDisplayed++;
             }
         }
 
         if (onDone) {
-            onDone(IMAGES_PER_JSON * jsonNb);
+            onDone(jsonNb);
         }
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.log(errorThrown);
     });
 
 };
@@ -283,24 +297,27 @@ $(document).ready(function() {
     if (window.location.hash) {
         var hash = parseInt(window.location.hash.substr(1), 10);
         if (isNaN(hash) || hash <= 0) {
-            console.log(hash);
-            downloadMore(0, onDoneThumbs);
+            downloadMore(1, onDoneThumbs);
         } else {
-            console.log(hash);
             setupDiaporama(hash);
         }
     } else {
-        downloadMore(0, onDoneThumbs);
+        downloadMore(1, onDoneThumbs);
     }
 
 
     $(window).on('popstate', function(ev) {
         var state = ev.originalEvent.state;
-        if (state && state.pos > 0) {
-            setupDiaporama(state.pos - 1);
+        if (state && state.order > 0) {
+            setupDiaporama(state.order);
         } else {
-            downloadMore(0, updateThumbs);
-            backToThumbs();
+            var hash = parseInt(window.location.hash.substr(1), 10);
+            if (isNaN(hash) || hash <= 0) {
+                downloadMore(1, updateThumbs);
+                backToThumbs();
+            } else {
+                setupDiaporama(hash);
+            }
         }
     });
 
@@ -314,7 +331,7 @@ $(document).ready(function() {
             $('#loading').show();
             $('#downloadMore').hide();
 
-            downloadMore(images.length, onDoneThumbs);
+            downloadMore(images.length + 1, onDoneThumbs);
 
         }
     });
