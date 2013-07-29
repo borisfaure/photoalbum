@@ -2,18 +2,68 @@
 
 var totalImages = 0;
 var totalImagesDisplayed = 0;
-var nextJson = 0;
-var downloading = false;
 var isDisplayingThumbnails = true;
 
+var title;
+
 var images = [];
+
+var changeHistory = function (pos) {
+    var newTitle;
+
+    if (pos === undefined) {
+        newTitle = title;
+        pos = 0;
+    } else {
+        pos++;
+        newTitle = title + ' - ' + pos + '/' + totalImages;
+    }
+    $('title').text(newTitle);
+
+    if (!window.history.pushState) {
+        return;
+    }
+
+    history.pushState({pos: pos}, newTitle, '#' + pos);
+};
 
 var backToThumbs = function () {
     var $diaporama = $('#diaporama');
     $diaporama.empty();
-    $('.thumb').show();
     $('#downloadMore').hide();
     $('#loading').hide();
+    changeHistory();
+    isDisplayingThumbnails = true;
+    if (totalImages != totalImagesDisplayed) {
+        var jsonBoundary = 0;
+        var ul = [];
+        $.each(images, function(pos, img) {
+            var $li = $('<li />');
+            var $img;
+            if (img) {
+                $img = $('<img />', {
+                    src: 'thumb/' + pos + '.jpg',
+                    width: img.th_w,
+                    height: img.th_h,
+                    alt: img.l
+                });
+            } else {
+                if (pos > jsonBoundary) {
+                    jsonBoundary += IMAGES_PER_JSON;
+                    downloadMore(i, updateThumbs);
+                }
+                $img = $('<img />');
+            }
+            $img.click(function() {
+                setupDiaporama(pos);
+            });
+            $img.appendTo($li);
+
+            ul.push($li);
+        });
+        $('#thumbs').append(ul);
+    }
+    $('.thumb').show();
 };
 
 var _ = function (str) {
@@ -21,23 +71,28 @@ var _ = function (str) {
 };
 
 var setupDiaporama = function (pos) {
+    var checkPos;
+    var resizeFn;
+
     $('.thumb').hide();
+    isDisplayingThumbnails = false;
 
     var $diaporama = $('#diaporama');
 
-    console.log(pos);
     var img = images[pos];
+    if (!img) {
+        downloadMore(pos, function () {
+            setupDiaporama(pos);
+        });
+        img = {};
+    }
 
     $diaporama.detach();
     $diaporama.empty();
 
-    console.log(img);
-
     var $prev = $('<div />', {
         'class': 'nav',
         id: 'prev'
-    }).click(function() {
-        console.log('prev', img, pos);
     });
     $('<div/>').appendTo($prev);
 
@@ -46,16 +101,11 @@ var setupDiaporama = function (pos) {
     var $img = $('<img />', {
         src: 'large/' + pos + '.jpg',
         id: 'main'
-    }).appendTo($imgContainer)
-    .click(function() {
-        console.log('foo', img, pos);
-    });
+    }).appendTo($imgContainer);
 
     var $next = $('<div />', {
         'class': 'nav',
         id: 'next'
-    }).click(function() {
-        console.log('next', img, pos);
     });
     $('<div/>').appendTo($next);
 
@@ -85,8 +135,7 @@ var setupDiaporama = function (pos) {
 
     $('body').append($diaporama);
 
-    var resizeFn = function() {
-        console.log($(window).height(), $bottom.height(), $toolbar.height());
+    resizeFn = function() {
         var newHeigth = $(window).height()
                       - Math.max($bottom.height(), $toolbar.height())
                       - 5;
@@ -95,13 +144,13 @@ var setupDiaporama = function (pos) {
         $next.height(newHeigth);
     };
 
-    var checkPos = function () {
+    checkPos = function () {
         if (pos == 0) {
             $prev.hide();
         } else {
             $prev.show();
         }
-        if (pos == images.length - 1) {
+        if (pos == totalImages - 1) {
             $next.hide();
         } else {
             $next.show();
@@ -110,8 +159,13 @@ var setupDiaporama = function (pos) {
 
     var updateImage = function () {
 
-        console.log('pos:', pos);
         img = images[pos];
+        if (!img) {
+            downloadMore(pos, function () {
+                setupDiaporama(pos);
+            });
+            return;
+        }
 
         $diaporama.detach();
 
@@ -123,10 +177,10 @@ var setupDiaporama = function (pos) {
             $legend.html(markdown.toHTML(img.l));
         }
 
-
         checkPos();
         $('body').append($diaporama);
         resizeFn();
+        changeHistory(pos);
     };
 
     var prev = function() {
@@ -142,55 +196,69 @@ var setupDiaporama = function (pos) {
 
     $(window).resize(resizeFn);
     resizeFn();
+    changeHistory(pos);
 };
 
 
-var appendThumbs = function (newImages)
-{
+var updateThumbs = function (newJson) {
+    var $thumbs = $('#thumbs');
+    var $children = $thumbs.children();
     var ul = [];
-    $.each(newImages, function(i, img) {
-        var pos = i + nextJson * IMAGES_PER_JSON;
-        var $li = $('<li />');
-        var $img = $('<img />', {
-            src: 'thumb/' + pos + '.jpg',
-            width: img.th_w,
-            height: img.th_h,
-            alt: img.l
-        }).click(function() {
-            setupDiaporama(pos);
-        });
-        $img.appendTo($li);
+    var i;
+    var m = Math.min(images.length, (newJson + 1) * IMAGES_PER_JSON);
+    for (i = newJson * IMAGES_PER_JSON; i < m; i++) {
+        (function(){
+            var img = images[i];
+            var $img;
+            var $child = $($children[i]);
+            if ($child.length) {
+                $img = $($child.children()[0]);
+                $img.attr('src', 'thumb/' + i + '.jpg');
+                $img.attr('width', img.th_w);
+                $img.attr('height', img.th_h);
+                $img.attr('alt', img.l);
+            } else {
+                var $li = $('<li />');
+                var _i = i;
+                $img = $('<img />', {
+                    src: 'thumb/' + i + '.jpg',
+                    width: img.th_w,
+                    height: img.th_h,
+                    alt: img.l
+                }).click(function() {
+                    console.log(_i);
+                    setupDiaporama(_i);
+                });
+                $img.appendTo($li);
 
-        ul.push($li);
-    });
-
-    totalImagesDisplayed += newImages.length;
+                ul.push($li);
+            }
+        })();
+    }
 
     $('#thumbs').append(ul);
 };
 
-var downloadMore = function () {
-    if (downloading) {
-        return;
-    }
+var downloadMore = function (pos, onDone) {
     if (totalImages > 0 && totalImages == totalImagesDisplayed) {
         return;
     }
-    downloading = true;
-    $('#loading').show();
-    $('#downloadMore').hide();
-    var file = 'json/images_' + nextJson + '.json';
+    var jsonNb = Math.floor(pos / IMAGES_PER_JSON);
+    var file = 'json/images_' + jsonNb + '.json';
     $.get(file, function (data) {
         totalImages = data.total;
 
-        images = images.concat(data.images);
+        var i;
+        for (i = 0; i < data.images.length; i++) {
+            var p = i + IMAGES_PER_JSON * jsonNb;
+            if (!images[p]) {
+                images[p] = data.images[i];
+                totalImagesDisplayed++;
+            }
+        }
 
-        appendThumbs(data.images);
-        nextJson++;
-        downloading = false;
-        $('#loading').hide();
-        if (totalImagesDisplayed < totalImages) {
-            $('#downloadMore').show();
+        if (onDone) {
+            onDone(IMAGES_PER_JSON * jsonNb);
         }
     });
 
@@ -198,19 +266,56 @@ var downloadMore = function () {
 
 
 $(document).ready(function() {
+    var downloading = false;
 
-    downloadMore();
-
+    title = $('title').text();
     $('#downloadMore').click(downloadMore);
 
+    var onDoneThumbs = function (jsonNb) {
+        updateThumbs(jsonNb);
+
+        $('#loading').hide();
+        if (totalImagesDisplayed < totalImages) {
+            $('#downloadMore').show();
+        }
+    };
+
+    if (window.location.hash) {
+        var hash = parseInt(window.location.hash.substr(1), 10);
+        if (isNaN(hash) || hash <= 0) {
+            console.log(hash);
+            downloadMore(0, onDoneThumbs);
+        } else {
+            console.log(hash);
+            setupDiaporama(hash);
+        }
+    } else {
+        downloadMore(0, onDoneThumbs);
+    }
+
+
+    $(window).on('popstate', function(ev) {
+        var state = ev.originalEvent.state;
+        if (state && state.pos > 0) {
+            setupDiaporama(state.pos - 1);
+        } else {
+            downloadMore(0, updateThumbs);
+            backToThumbs();
+        }
+    });
+
     $(window).scroll(function (ev) {
-        if (downloading) {
+        if (downloading || !isDisplayingThumbnails) {
             return;
         }
         var scrollTop = $(window).scrollTop();
         var height = $(document).height();
         if (scrollTop * 3 > 2 * height) {
-            downloadMore();
+            $('#loading').show();
+            $('#downloadMore').hide();
+
+            downloadMore(images.length, onDoneThumbs);
+
         }
     });
 

@@ -139,21 +139,6 @@ var genImagesTabFromCfg = function (cfg, onDone) {
             }
         };
 
-        var large = function () {
-            var dstPath = path.join(cfg.out, 'large', pos + '.jpg');
-
-            /* call imagemagick */
-            im.identify(dstPath, function(err, features) {
-                if (err) throw err;
-                if (!images[pos]) images[pos] = {};
-
-                images[pos].l_w = features.width;
-                images[pos].l_h = features.height;
-
-                finish();
-            });
-        };
-
         {
             var dstPath = path.join(cfg.out, 'thumb', pos + '.jpg');
 
@@ -165,7 +150,7 @@ var genImagesTabFromCfg = function (cfg, onDone) {
                 images[pos].th_w = features.width;
                 images[pos].th_h = features.height;
 
-                large();
+                finish();
             });
         }
     };
@@ -228,15 +213,8 @@ var doAll = function (cfg, genJSON) {
             /* call imagemagick */
             im.resize(o, function(err, stdout, stderr) {
                 if (err) throw err;
-                im.identify(o.dstPath, function(err, features) {
-                    if (err) throw err;
-                    if (!images[pos]) images[pos] = {};
 
-                    images[pos].l_w = features.width;
-                    images[pos].l_h = features.height;
-
-                    full();
-                });
+                full();
             });
         };
 
