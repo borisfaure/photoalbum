@@ -5,7 +5,7 @@ var totalImagesDisplayed = 0;
 var isDisplayingThumbnails = true;
 
 var title;
-
+var intervalId = null;
 var images = [];
 
 /* XXX:
@@ -33,6 +33,10 @@ var changeHistory = function (order) {
 };
 
 var backToThumbs = function () {
+    if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+    }
     var $diaporama = $('#diaporama');
     $diaporama.empty();
     $('#downloadMore').hide();
@@ -79,8 +83,15 @@ var _ = function (str) {
 var setupDiaporama = function (order) {
     var checkOrder;
     var resizeFn;
+    var prevFn;
+    var nextFn;
 
     var index = order - 1;
+
+    if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+    }
 
     $('.thumb').hide();
     isDisplayingThumbnails = false;
@@ -131,8 +142,34 @@ var setupDiaporama = function (order) {
         width: 32,
         height: 32,
         title: _('Show Thumbnails')
-    }).click(backToThumbs);
-    $toolbar.append($thumbs);
+    }).click(backToThumbs).appendTo($toolbar);
+
+    var $playpause;
+    var pauseDiaporama;
+    var playDiaporama = function () {
+        $playpause.attr('src', 'pause.png');
+        $playpause.attr('title', _('Pause diaporama'));
+        $playpause.off('click');
+        $playpause.on('click', pauseDiaporama);
+        intervalId = setInterval(nextFn, 3700);
+    };
+    pauseDiaporama = function () {
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+        $playpause.attr('src', 'play.png');
+        $playpause.attr('title', _('Play diaporama'));
+        $playpause.off('click');
+        $playpause.on('click', playDiaporama);
+    };
+    $playpause = $('<img />', {
+        width: 32,
+        height: 32,
+    }).appendTo($toolbar);
+    pauseDiaporama();
+
+
     var $legend = $('<div />', {
         id: 'legend'
     });
@@ -195,18 +232,24 @@ var setupDiaporama = function (order) {
         changeHistory(order);
     };
 
-    var prev = function() {
+    prevFn = function() {
         order--;
         index--;
         updateImage();
     };
-    $prev.click(prev);
-    var next = function() {
+    $prev.click(function () {
+        pauseDiaporama();
+        prevFn();
+    });
+    nextFn = function() {
         order++;
         index++;
         updateImage();
     };
-    $next.click(next);
+    $next.click(function () {
+        pauseDiaporama();
+        nextFn();
+    });
 
     $(window).resize(resizeFn);
     resizeFn();

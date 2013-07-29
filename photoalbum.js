@@ -41,6 +41,8 @@ var setup = function (cfg) {
     copy('photoalbum.css');
     copy('prev.png');
     copy('next.png');
+    copy('play.png');
+    copy('pause.png');
     copy('thumbs.png');
     copy('loading.gif');
 
