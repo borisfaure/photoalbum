@@ -106,10 +106,13 @@ var setupDiaporama = function (order) {
 
 
     var $imgContainer = $('<div />');
+    var $fullLink = $('<a />', {
+        href: 'full/' + order + '.jpg'
+    }).appendTo($imgContainer);
     var $img = $('<img />', {
         src: 'large/' + order + '.jpg',
         id: 'main'
-    }).appendTo($imgContainer);
+    }).appendTo($fullLink);
 
     var $next = $('<div />', {
         'class': 'nav',
@@ -178,6 +181,7 @@ var setupDiaporama = function (order) {
         $diaporama.detach();
 
         $img.attr('src', 'large/' + order + '.jpg');
+        $fullLink.attr('href', 'full/' + order + '.jpg');
 
 
         $legend.empty();
