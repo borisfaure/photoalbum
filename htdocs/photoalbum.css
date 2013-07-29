@@ -51,14 +51,16 @@ div {
 }
 
 #diaporama div.nav {
-    background-color: #228;
     margin: 0px auto;
     top: 0px;
     width: 15%;
     height: auto;
-    background-color: #aaa;
     position: absolute;
     overflow: hidden;
+    opacity: 0.5;
+}
+#diaporama div.nav:hover {
+    opacity: 1;
 }
 #diaporama div#prev {
     left: 0px;
@@ -76,6 +78,10 @@ div {
     display: block;
     width: auto;
     height: 100%;
+    background-image: url('loading.gif');
+    background-repeat: no-repeat;
+    background-position: center center;
+    image-rendering: optimizequality;
 }
 
 #diaporama div.nav div {
@@ -105,4 +111,11 @@ div {
 #toolbar {
     float: right;
     cursor: pointer;
+}
+
+#toolbar img {
+    opacity: 0.5;
+}
+#toolbar img:hover {
+    opacity: 1;
 }
