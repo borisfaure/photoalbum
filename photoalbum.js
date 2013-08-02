@@ -259,27 +259,49 @@ var genConfig = function(inPath, cfgPath) {
     var json = {
         images: [],
         out: 'out/',
-        title: 'My pics'
+        title: 'My pics',
+        noGPS: true,
+        lang: 'en'
     };
 
     var dirs = fs.readdirSync(inPath);
-    for (var f in dirs) {
+
+    console.log('Checking ' + dirs.length + ' files in ' + inPath);
+    var done = 0;
+    var checkImage;
+    checkImage = function(f) {
+        if (f > dirs.length) {
+            return;
+        }
+
         var p = path.join(inPath, dirs[f]);
-        var o = {
-            path: p,
-            legend: '',
-            noGPS: true,
-            lang: 'en',
-            downloadMore: 'Download more images'
-        };
-        json.images.push(o);
+        im.identify(p, function(err, features) {
+            done++;
+            console.log(done + '/' + dirs.length);
+            if (!err) {
+                var o = {
+                    path: p,
+                    legend: ''
+                };
+                json.images.push(o);
+            }
+            if (f + NB_WORKERS < dirs.length) {
+                checkImage(f + NB_WORKERS);
+            } else if (done == dirs.length) {
+                console.log(json.images.length + 'images found');
+                fs.writeFile(cfgPath, JSON.stringify(json, null, 4),
+                             function(err) {
+                    if (err) {
+                        throw (err);
+                    }
+                });
+            }
+        });
+    };
+    for (i = 0; i < NB_WORKERS; i++) {
+        checkImage(i, onDone);
     }
 
-    fs.writeFile(cfgPath, JSON.stringify(json, null, 4), function(err) {
-        if (err) {
-            throw (err);
-        }
-    });
 };
 
 
@@ -298,7 +320,7 @@ var usage = function() {
     + "genImages\n"
     + "  generates thumbnails/large images and copy the full-size images\n"
     + "all config_file\n"
-    + "  execute setup/genJSONs/genImages");
+    + "  execute setup/genJSONs/genImages\n");
     process.exit(1);
 };
 
@@ -310,7 +332,10 @@ if (args.length < 2) {
 
 switch (args[0]) {
   case "genConfig":
-    genConfig(args[0], args[1]);
+    if (args.length < 3) {
+        usage();
+    }
+    genConfig(args[1], args[2]);
     break;
   case "setup":
     var cfg = getJSONFromPath(args[1]);
