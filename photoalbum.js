@@ -9,6 +9,8 @@ var im = require('imagemagick');
 var NB_WORKERS = 100;
 var IMAGES_PER_JSON = 50;
 
+var cfgPath;
+
 
 var getJSONFromPath = function (path) {
     var data = fs.readFileSync(path);
@@ -96,7 +98,7 @@ var setup = function (cfg, isEditor) {
 
 };
 
-var genJSONs = function (cfg, images) {
+var genJSONs = function (cfg, images, onDone) {
     var l = [];
     var i;
     var errFn = function (err) {
@@ -116,6 +118,9 @@ var genJSONs = function (cfg, images) {
         }
         var jsonPath = path.join(cfg.out, 'json', 'images_' + i + '.json');
         fs.writeFile(jsonPath, JSON.stringify(o, null, 4), errFn);
+    }
+    if (onDone) {
+        onDone();
     }
 };
 
@@ -346,6 +351,15 @@ var doAll = function (cfg, genJSON) {
     }
 };
 
+var saveCfg = function (cfgPath, cfg) {
+    fs.writeFile(cfgPath, JSON.stringify(cfg, null, 4),
+                 function(err) {
+                     if (err) {
+                         throw (err);
+                     }
+                 }
+    );
+};
 
 var genConfig = function(inPath, cfgPath) {
     var json = {
@@ -381,12 +395,7 @@ var genConfig = function(inPath, cfgPath) {
                 checkImage(f + NB_WORKERS);
             } else if (done == dirs.length) {
                 console.log(json.images.length + 'images found');
-                fs.writeFile(cfgPath, JSON.stringify(json, null, 4),
-                             function(err) {
-                    if (err) {
-                        throw (err);
-                    }
-                });
+                saveCfg(cfgPath, json);
             }
         });
     };
@@ -395,7 +404,6 @@ var genConfig = function(inPath, cfgPath) {
     }
 
 };
-
 
 
 /* MAIN */
@@ -442,7 +450,9 @@ switch (args[0]) {
   case "genJSONs":
     var cfg = getJSONFromPath(args[1]);
     var onDone = function (images) {
-        genJSONs(cfg, images);
+        genJSONs(cfg, images, function () {
+            saveCfg(args[1], cfg);
+        });
     };
     genImagesTabFromCfg(cfg, onDone);
     break;
