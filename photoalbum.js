@@ -7,6 +7,9 @@ var os = require('os');
 var fs = require('fs');
 var path = require('path');
 var im = require('imagemagick');
+var crypto = require('crypto');
+var mime = require('mime');
+
 
 var NB_WORKERS = 100;
 var IMAGES_PER_JSON = 50;
@@ -15,6 +18,19 @@ var cfgPath;
 
 /* }}} */
 /* {{{ Utils */
+
+var md5 = function (path, onDone) {
+    var md5sum = crypto.createHash('md5');
+    var s = fs.ReadStream(path);
+    s.on('data', function(d) {
+        md5sum.update(d);
+    });
+
+    s.on('end', function() {
+        var d = md5sum.digest('hex');
+        onDone(d);
+    });
+};
 
 var getJSONFromPath = function (path) {
     var data = fs.readFileSync(path);
@@ -39,15 +55,15 @@ var getTranslations = function (lang) {
     return translations[lang] || {};
 };
 
-var genLegend = function (cfg, pos, images) {
-    var img = cfg.images[pos];
-    if (img.legend) {
-        if (typeof img.legend === "string") {
-            images[pos].l = img.legend;
+var genLegend = function (legend) {
+    if (legend) {
+        if (typeof legend === "string") {
+            return legend;
         } else {
-            images[pos].l = img.legend.join('\n');
+            return legend.join('\n');
         }
     }
+    return undefined;
 };
 
 
@@ -156,59 +172,99 @@ var genJSONs = function (cfg, images, onDone) {
     }
 };
 
-var genImagesTabFromCfg = function (cfg, onDone) {
+/* }}} */
+/* {{{ genThumbs */
+
+var genOneThumbnail = function (img, images, onDone) {
+    fs.stat(img.path, function (err, stat) {
+        if (err) {
+            console.error(err);
+            finish();
+            return;
+        }
+
+        var resize = function () {
+            var o = {
+                width: 256,
+                srcPath: img.path,
+                dstPath: path.join(cfg.out, 'thumb', img.md5 + '.jpg')
+            };
+            im.resize(o, function(err, stdout, stderr) {
+                if (err) throw err;
+                im.identify(o.dstPath, function(err, features) {
+                    if (err) throw err;
+
+                    img.th_w = features.width;
+                    img.th_h = features.height;
+
+                    var o = {
+                        legend: genLegend(img.legend),
+                        md5: img.md5,
+                        th_w: img.th_w,
+                        th_h: img.th_h
+                    };
+                    images.push(o);
+                    onDone();
+                });
+            });
+        };
+        var mtime = stat.mtime.getTime();
+        if (mtime !== img.mtime || !img.md5 ||
+            !fs.existsSync(path.join(cfg.out, 'thumb', img.md5 + '.jpg')))
+        {
+            img.mtime = mtime;
+            md5(img.path, function(hex) {
+                img.md5 = hex;
+                resize();
+            });
+        } else {
+            var o = {
+                legend: genLegend(img.legend),
+                md5: img.md5,
+                th_w: img.th_w,
+                th_h: img.th_h
+            };
+            images.push(o);
+            onDone();
+        }
+    });
+};
+
+var genThumbs = function (cfg, onDone) {
     var i;
     var done = 0;
     var images = [];
-    var imageSizing = function (cfg, pos, onDone) {
+
+    var dealImage = function (cfg, pos, onDone) {
         var img = cfg.images[pos];
         if (!img) {
             return;
         }
-        var name = pos + 1;
 
         var finish = function () {
-
-            genLegend(cfg, pos, images);
-
             done++;
-
             console.log(done + '/' + cfg.images.length);
 
             if (pos + NB_WORKERS < cfg.images.length) {
-                imageSizing(cfg, pos + NB_WORKERS, onDone);
+                dealImage(cfg, pos + NB_WORKERS, onDone);
             } else if (done == cfg.images.length) {
                 onDone(images);
             }
         };
-
-        {
-            var dstPath = path.join(cfg.out, 'thumb', name + '.jpg');
-
-            /* call imagemagick */
-            im.identify(dstPath, function(err, features) {
-                if (err) throw err;
-                if (!images[pos]) images[pos] = {};
-
-                images[pos].th_w = features.width;
-                images[pos].th_h = features.height;
-
-                finish();
-            });
-        }
+        genOneThumbnail(img, images, finish);
     };
+
     for (i = 0; i < NB_WORKERS; i++) {
-        imageSizing(cfg, i, onDone);
+        dealImage(cfg, i, onDone);
     }
-
 };
-
 
 /* }}} */
 /* {{{ editor */
 
 var editor = function (cfg) {
 
+    /* TODO: boris */
     var images = [];
     var done = 0;
     var mkdir = function (dir) {
@@ -219,7 +275,6 @@ var editor = function (cfg) {
             }
         });
     };
-    mkdir('thumb');
 
     var onDone = function () {
         console.log('ondone');
@@ -288,30 +343,20 @@ var editor = function (cfg) {
 /* }}} */
 /* {{{ doAll */
 
-var doAll = function (cfg, genJSON) {
+var doAll = function (cfg, genJSON, onDone) {
     var i;
     var done = 0;
     var images = [];
 
     var dealImage = function (cfg, pos, onDone) {
-        var name = pos + 1;
-        var o = {
-            width: 256,
-        };
         var img = cfg.images[pos];
         if (!img) {
             return;
         }
-        o.srcPath = img.path;
 
         var finish = function () {
-
-            genLegend(cfg, pos, images);
-
             done++;
-
             console.log(done + '/' + cfg.images.length);
-
             if (pos + NB_WORKERS < cfg.images.length) {
                 dealImage(cfg, pos + NB_WORKERS, onDone);
             } else if (done == cfg.images.length) {
@@ -320,60 +365,52 @@ var doAll = function (cfg, genJSON) {
         };
 
         var full = function () {
-            var source = img.path;
-            var dest = path.join(cfg.out, 'full',  name + '.jpg');
-            var data = fs.readFileSync(source);
-            fs.writeFile(dest, data, function(err) {
-                if (err) {
-                    throw (err);
-                }
-            });
+            var dest = path.join(cfg.out, 'full',  img.md5 + '.jpg');
 
-            finish();
+            if (!fs.existsSync(dest)) {
+                var data = fs.readFileSync(img.path);
+                fs.writeFile(dest, data, function(err) {
+                    if (err) {
+                        throw (err);
+                    }
+                });
+                finish();
+            } else {
+                finish();
+            }
         };
 
         var large = function () {
-            o.dstPath = path.join(cfg.out, 'large', name + '.jpg');
-            o.width = 1024;
-            o.heigth = 768;
+            var o = {
+                srcPath: img.path,
+                dstPath: path.join(cfg.out, 'large', img.md5 + '.jpg'),
+                width: 1024,
+                heigth: 768
+            };
 
-            /* call imagemagick */
-            im.resize(o, function(err, stdout, stderr) {
-                if (err) throw err;
+            if (!fs.existsSync(o.dstPath)) {
+                im.resize(o, function(err, stdout, stderr) {
+                    if (err) throw err;
 
+                    full();
+                });
+            } else {
                 full();
-            });
+            }
         };
 
-        // Generate thumbnail
-        {
-            o.dstPath = path.join(cfg.out, 'thumb', name + '.jpg');
-
-            /* call imagemagick */
-            im.resize(o, function(err, stdout, stderr) {
-                if (err) throw err;
-                im.identify(o.dstPath, function(err, features) {
-                    if (err) throw err;
-                    if (!images[pos]) images[pos] = {};
-
-                    images[pos].th_w = features.width;
-                    images[pos].th_h = features.height;
-
-                    large();
-                });
-            });
-        }
-
+        genOneThumbnail(img, images, large);
     };
 
 
-    var onDone = function () {
+    var itsOver = function () {
         if (genJSON) {
             genJSONs(cfg, images);
         }
+        onDone();
     };
     for (i = 0; i < NB_WORKERS; i++) {
-        dealImage(cfg, i, onDone);
+        dealImage(cfg, i, itsOver);
     }
 };
 
@@ -399,29 +436,46 @@ var genConfig = function(inPath, cfgPath) {
             return;
         }
 
-        var p = path.join(inPath, dirs[f]);
-        im.identify(p, function(err, features) {
+        var onDone = function () {
             done++;
             console.log(done + '/' + dirs.length);
-            if (!err) {
-                var o = {
-                    path: p,
-                    legend: ''
-                };
-                json.images.push(o);
-            }
+
             if (f + NB_WORKERS < dirs.length) {
                 checkImage(f + NB_WORKERS);
             } else if (done == dirs.length) {
-                console.log(json.images.length + 'images found');
+                console.log(json.images.length + ' images found');
                 saveCfg(cfgPath, json);
             }
+        };
+
+        var p = path.join(inPath, dirs[f]);
+        var type = mime.lookup(p);
+        if (type.indexOf('image') !== 0) {
+            onDone();
+            return;
+        }
+
+        fs.stat(p, function (err, stat) {
+            if (err) {
+                console.error(err);
+                onDone();
+                return;
+            }
+            md5(p, function(hex) {
+                var o = {
+                    path: p,
+                    legend: '',
+                    md5: hex,
+                    mtime: stat.mtime.getTime()
+                };
+                json.images.push(o);
+                onDone();
+            });
         });
     };
     for (i = 0; i < NB_WORKERS; i++) {
         checkImage(i, onDone);
     }
-
 };
 
 /* }}} */
@@ -434,6 +488,8 @@ var usage = function() {
     + "  generate a configuration files about files in input_directory\n"
     + "setup config_file\n"
     + "  setup files in output directory\n"
+    + "genThumbs config_file\n"
+    + "  generates thumbnails and copy the full-size images\n"
     + "editor config_file\n"
     + "  generate an editor.html file in output directory\n"
     + "genJSONs config_file\n"
@@ -464,7 +520,16 @@ switch (args[0]) {
     break;
   case "editor":
     var cfg = getJSONFromPath(args[1]);
+    setup(cfg);
     editor(cfg);
+    break;
+  case "genThumbs":
+    var cfg = getJSONFromPath(args[1]);
+    setup(cfg);
+    var onDone = function () {
+        saveCfg(args[1], cfg);
+    };
+    genThumbs(cfg, onDone);
     break;
   case "genJSONs":
     var cfg = getJSONFromPath(args[1]);
@@ -473,16 +538,20 @@ switch (args[0]) {
             saveCfg(args[1], cfg);
         });
     };
-    genImagesTabFromCfg(cfg, onDone);
+    genThumbs(cfg, onDone);
     break;
   case "genImages":
     var cfg = getJSONFromPath(args[1]);
-    doAll(cfg, false);
+    doAll(cfg, false, function () {
+        saveCfg(args[1], cfg);
+    });
     break;
   case "all":
     var cfg = getJSONFromPath(args[1]);
     setup(cfg);
-    doAll(cfg, true);
+    doAll(cfg, true, function () {
+        saveCfg(args[1], cfg);
+    });
     break;
   default:
     usage();

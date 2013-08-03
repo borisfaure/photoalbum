@@ -52,7 +52,7 @@ var backToThumbs = function () {
             var $img;
             if (img) {
                 $img = $('<img />', {
-                    src: 'thumb/' + order + '.jpg',
+                    src: 'thumb/' + img.md5 + '.jpg',
                     width: img.th_w,
                     height: img.th_h,
                     alt: img.l
@@ -118,10 +118,10 @@ var setupDiaporama = function (order) {
 
     var $imgContainer = $('<div />');
     var $fullLink = $('<a />', {
-        href: 'full/' + order + '.jpg'
+        href: 'full/' + img.md5 + '.jpg'
     }).appendTo($imgContainer);
     var $img = $('<img />', {
-        src: 'large/' + order + '.jpg',
+        src: 'large/' + img.md5 + '.jpg',
         id: 'main'
     }).appendTo($fullLink);
 
@@ -217,8 +217,8 @@ var setupDiaporama = function (order) {
 
         $diaporama.detach();
 
-        $img.attr('src', 'large/' + order + '.jpg');
-        $fullLink.attr('href', 'full/' + order + '.jpg');
+        $img.attr('src', 'large/' + img.md5 + '.jpg');
+        $fullLink.attr('href', 'full/' + img.md5 + '.jpg');
 
 
         $legend.empty();
@@ -271,14 +271,14 @@ var updateThumbs = function (newJson) {
             var order = i + 1;
             if ($child.length) {
                 $img = $($child.children()[0]);
-                $img.attr('src', 'thumb/' + order + '.jpg');
+                $img.attr('src', 'thumb/' + img.md5 + '.jpg');
                 $img.attr('width', img.th_w);
                 $img.attr('height', img.th_h);
                 $img.attr('alt', img.l);
             } else {
                 var $li = $('<li />');
                 $img = $('<img />', {
-                    src: 'thumb/' + order + '.jpg',
+                    src: 'thumb/' + img.md5 + '.jpg',
                     width: img.th_w,
                     height: img.th_h,
                     alt: img.l
