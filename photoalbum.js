@@ -1,5 +1,7 @@
 #!/usr/bin/node
 
+/* {{{ Globals */
+
 var util = require('util');
 var os = require('os');
 var fs = require('fs');
@@ -11,10 +13,22 @@ var IMAGES_PER_JSON = 50;
 
 var cfgPath;
 
+/* }}} */
+/* {{{ Utils */
 
 var getJSONFromPath = function (path) {
     var data = fs.readFileSync(path);
     return JSON.parse(data);
+};
+
+var saveCfg = function (cfgPath, cfg) {
+    fs.writeFile(cfgPath, JSON.stringify(cfg, null, 4),
+                 function(err) {
+                     if (err) {
+                         throw (err);
+                     }
+                 }
+    );
 };
 
 var getTranslations = function (lang) {
@@ -24,6 +38,21 @@ var getTranslations = function (lang) {
     var translations = getJSONFromPath('translations.json');
     return translations[lang] || {};
 };
+
+var genLegend = function (cfg, pos, images) {
+    var img = cfg.images[pos];
+    if (img.legend) {
+        if (typeof img.legend === "string") {
+            images[pos].l = img.legend;
+        } else {
+            images[pos].l = img.legend.join('\n');
+        }
+    }
+};
+
+
+/* }}} */
+/* {{{ Setup */
 
 var setup = function (cfg, isEditor) {
 
@@ -98,6 +127,9 @@ var setup = function (cfg, isEditor) {
 
 };
 
+/* }}} */
+/* {{{ genJSONs */
+
 var genJSONs = function (cfg, images, onDone) {
     var l = [];
     var i;
@@ -124,16 +156,56 @@ var genJSONs = function (cfg, images, onDone) {
     }
 };
 
-var genLegend = function (cfg, pos, images) {
-    var img = cfg.images[pos];
-    if (img.legend) {
-        if (typeof img.legend === "string") {
-            images[pos].l = img.legend;
-        } else {
-            images[pos].l = img.legend.join('\n');
+var genImagesTabFromCfg = function (cfg, onDone) {
+    var i;
+    var done = 0;
+    var images = [];
+    var imageSizing = function (cfg, pos, onDone) {
+        var img = cfg.images[pos];
+        if (!img) {
+            return;
         }
+        var name = pos + 1;
+
+        var finish = function () {
+
+            genLegend(cfg, pos, images);
+
+            done++;
+
+            console.log(done + '/' + cfg.images.length);
+
+            if (pos + NB_WORKERS < cfg.images.length) {
+                imageSizing(cfg, pos + NB_WORKERS, onDone);
+            } else if (done == cfg.images.length) {
+                onDone(images);
+            }
+        };
+
+        {
+            var dstPath = path.join(cfg.out, 'thumb', name + '.jpg');
+
+            /* call imagemagick */
+            im.identify(dstPath, function(err, features) {
+                if (err) throw err;
+                if (!images[pos]) images[pos] = {};
+
+                images[pos].th_w = features.width;
+                images[pos].th_h = features.height;
+
+                finish();
+            });
+        }
+    };
+    for (i = 0; i < NB_WORKERS; i++) {
+        imageSizing(cfg, i, onDone);
     }
+
 };
+
+
+/* }}} */
+/* {{{ editor */
 
 var editor = function (cfg) {
 
@@ -213,54 +285,8 @@ var editor = function (cfg) {
     }
 };
 
-var genImagesTabFromCfg = function (cfg, onDone) {
-    var i;
-    var done = 0;
-    var images = [];
-    var imageSizing = function (cfg, pos, onDone) {
-        var img = cfg.images[pos];
-        if (!img) {
-            return;
-        }
-        var name = pos + 1;
-
-        var finish = function () {
-
-            genLegend(cfg, pos, images);
-
-            done++;
-
-            console.log(done + '/' + cfg.images.length);
-
-            if (pos + NB_WORKERS < cfg.images.length) {
-                imageSizing(cfg, pos + NB_WORKERS, onDone);
-            } else if (done == cfg.images.length) {
-                onDone(images);
-            }
-        };
-
-        {
-            var dstPath = path.join(cfg.out, 'thumb', name + '.jpg');
-
-            /* call imagemagick */
-            im.identify(dstPath, function(err, features) {
-                if (err) throw err;
-                if (!images[pos]) images[pos] = {};
-
-                images[pos].th_w = features.width;
-                images[pos].th_h = features.height;
-
-                finish();
-            });
-        }
-    };
-    for (i = 0; i < NB_WORKERS; i++) {
-        imageSizing(cfg, i, onDone);
-    }
-
-};
-
-
+/* }}} */
+/* {{{ doAll */
 
 var doAll = function (cfg, genJSON) {
     var i;
@@ -351,15 +377,8 @@ var doAll = function (cfg, genJSON) {
     }
 };
 
-var saveCfg = function (cfgPath, cfg) {
-    fs.writeFile(cfgPath, JSON.stringify(cfg, null, 4),
-                 function(err) {
-                     if (err) {
-                         throw (err);
-                     }
-                 }
-    );
-};
+/* }}} */
+/* {{{ genConfig */
 
 var genConfig = function(inPath, cfgPath) {
     var json = {
@@ -405,8 +424,8 @@ var genConfig = function(inPath, cfgPath) {
 
 };
 
-
-/* MAIN */
+/* }}} */
+/* {{{ main */
 
 var usage = function() {
     util.print("usage: photoalbum command\n\n"
@@ -468,3 +487,5 @@ switch (args[0]) {
   default:
     usage();
 }
+
+/* }}} */
