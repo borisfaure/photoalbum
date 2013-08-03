@@ -23,7 +23,33 @@ var getTranslations = function (lang) {
     return translations[lang] || {};
 };
 
-var setup = function (cfg) {
+var setup = function (cfg, isEditor) {
+
+    var workHtmlFile = function (filename) {
+        var source = path.join('htdocs', filename);
+        var dest = path.join(cfg.out, filename);
+        var data = fs.readFileSync(source, {encoding: 'UTF-8'});
+        data = data.replace(/%%TITLE%%/g, cfg.title || '');
+        data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
+        data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
+        var translations = getTranslations(cfg.lang);
+
+        var _ = function (str) {
+            return translations[str] || str;
+        };
+        data = data.replace(/%%DOWNLOAD_MORE%%/g, _('Download more images'));
+        data = data.replace(/%%TRANSLATIONS%%/g,
+                            JSON.stringify(translations, null, 1));
+        data = data.replace(/%%CFG%%/g,
+                            JSON.stringify(cfg, null, 1));
+
+        fs.writeFile(dest, data, function(err) {
+            if (err) {
+                throw (err);
+            }
+        });
+    };
+
     /* TODO: check file dates, do 'à la' make */
     var copy = function(filename) {
         var source = path.join('htdocs', filename);
@@ -35,16 +61,24 @@ var setup = function (cfg) {
             }
         });
     };
+
     copy('jquery.min.js');
     copy('markdown.js');
-    copy('photoalbum.js');
-    copy('photoalbum.css');
-    copy('prev.png');
-    copy('next.png');
-    copy('play.png');
-    copy('pause.png');
-    copy('thumbs.png');
-    copy('loading.gif');
+    if (isEditor) {
+        copy('photoalbum.editor.js');
+        copy('photoalbum.editor.css');
+        workHtmlFile('editor.html');
+    } else {
+        copy('photoalbum.css');
+        copy('prev.png');
+        copy('next.png');
+        copy('play.png');
+        copy('pause.png');
+        copy('thumbs.png');
+        copy('loading.gif');
+        copy('photoalbum.js');
+        workHtmlFile('index.html');
+    }
 
     var mkdir = function (dir) {
         var p = path.join(cfg.out, dir);
@@ -60,26 +94,6 @@ var setup = function (cfg) {
     mkdir('full');
 
 
-    var source = path.join('htdocs/index.html');
-    var dest = path.join(cfg.out, 'index.html');
-    var data = fs.readFileSync(source, {encoding: 'UTF-8'});
-    data = data.replace(/%%TITLE%%/g, cfg.title || '');
-    data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
-    data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
-    var translations = getTranslations(cfg.lang);
-
-    var _ = function (str) {
-        return translations[str] || str;
-    };
-    data = data.replace(/%%DOWNLOAD_MORE%%/g, _('Download more images'));
-    data = data.replace(/%%TRANSLATIONS%%/g,
-                        JSON.stringify(translations, null, 1));
-
-    fs.writeFile(dest, data, function(err) {
-        if (err) {
-            throw (err);
-        }
-    });
 };
 
 var genJSONs = function (cfg, images) {
@@ -113,6 +127,84 @@ var genLegend = function (cfg, pos, images) {
         } else {
             images[pos].l = img.legend.join('\n');
         }
+    }
+};
+
+var editor = function (cfg) {
+
+    var images = [];
+    var done = 0;
+    var mkdir = function (dir) {
+        var p = path.join(cfg.out, dir);
+        fs.stat(p, function (err) {
+            if (err) {
+                fs.mkdir(p);
+            }
+        });
+    };
+    mkdir('thumb');
+
+    var onDone = function () {
+        console.log('ondone');
+        /* TODO: boris */
+
+        var isEditor = true;
+        setup(cfg, isEditor);
+
+        var source = path.join('htdocs/editor.html');
+        var dest = path.join(cfg.out, 'editor.html');
+        var data = fs.readFileSync(source, {encoding: 'UTF-8'});
+
+        fs.writeFile(dest, data, function(err) {
+            if (err) {
+                throw (err);
+            }
+        });
+    };
+
+    var dealImage;
+    dealImage = function (cfg, pos, onDone) {
+        var name = pos + 1;
+        var o = {
+            width: 256,
+        };
+        var img = cfg.images[pos];
+        if (!img) {
+            return;
+        }
+        o.srcPath = img.path;
+
+        var finish = function () {
+            done++;
+            console.log(done + '/' + cfg.images.length);
+
+            if (pos + NB_WORKERS < cfg.images.length) {
+                dealImage(cfg, pos + NB_WORKERS, onDone);
+            } else if (done == cfg.images.length) {
+                onDone();
+            }
+        };
+        // Generate thumbnail
+        {
+            o.dstPath = path.join(cfg.out, 'thumb', name + '.jpg');
+
+            /* call imagemagick */
+            im.resize(o, function(err, stdout, stderr) {
+                if (err) throw err;
+                im.identify(o.dstPath, function(err, features) {
+                    if (err) throw err;
+                    if (!images[pos]) images[pos] = {};
+
+                    images[pos].th_w = features.width;
+                    images[pos].th_h = features.height;
+
+                    finish();
+                });
+            });
+        }
+    };
+    for (i = 0; i < NB_WORKERS; i++) {
+        dealImage(cfg, i, onDone);
     }
 };
 
@@ -315,6 +407,8 @@ var usage = function() {
     + "  generate a configuration files about files in input_directory\n"
     + "setup config_file\n"
     + "  setup files in output directory\n"
+    + "editor config_file\n"
+    + "  generate an editor.html file in output directory\n"
     + "genJSONs config_file\n"
     + "  generate the JSONs files used by the web client\n"
     + "genImages\n"
@@ -340,6 +434,10 @@ switch (args[0]) {
   case "setup":
     var cfg = getJSONFromPath(args[1]);
     setup(cfg);
+    break;
+  case "editor":
+    var cfg = getJSONFromPath(args[1]);
+    editor(cfg);
     break;
   case "genJSONs":
     var cfg = getJSONFromPath(args[1]);
