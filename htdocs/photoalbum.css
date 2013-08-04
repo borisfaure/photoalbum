@@ -31,14 +31,16 @@ div {
 #thumbs li {
     width: 256px;
     position: relative;
-    margin-right: 7px;
-    margin-bottom: 7px;
+    margin-right: 20px;
+    margin-bottom: 10px;
     display: inline-block;
 }
 
 #thumbs li img {
     vertical-align: middle;
     cursor: pointer;
+    border-color: #fff;
+    border: solid 5px;
 }
 
 #diaporama {
@@ -71,9 +73,10 @@ div {
     right: 0px;
     width: 15%;
 }
-
+a:link, a:visited, a:hover, a:active {
+    border:none;
+}
 #diaporama div img#main {
-    background-color: #822;
     position: relative;
     margin: 0px auto;
     display: block;
@@ -82,6 +85,7 @@ div {
     background-image: url('loading.gif');
     background-repeat: no-repeat;
     background-position: center center;
+    border: solid 5px white;
     image-rendering: optimizequality;
 }
 
@@ -103,7 +107,6 @@ div {
 
 #diaporama #legend {
     margin: 0px 0px 0px 0px;
-    background-color: #282;
 }
 #diaporama #legend p {
     margin: 5px 0px;
