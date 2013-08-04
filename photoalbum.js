@@ -11,7 +11,7 @@ var crypto = require('crypto');
 var mime = require('mime');
 
 
-var NB_WORKERS = 100;
+var NB_WORKERS = 10;
 var IMAGES_PER_JSON = 50;
 
 var cfgPath;
@@ -99,14 +99,12 @@ var setup = function (cfg, isEditor) {
 
     /* TODO: check file dates, do 'à la' make */
     var copy = function(filename) {
-        var source = path.join('htdocs', filename);
-        var dest = path.join(cfg.out, filename);
-        var data = fs.readFileSync(source);
-        fs.writeFile(dest, data, function(err) {
-            if (err) {
-                throw (err);
-            }
-        });
+        var src = path.join('htdocs', filename);
+        var dst = path.join(cfg.out, filename);
+        var srcStream = fs.createReadStream(src);
+        var dstStream = fs.createWriteStream(dst);
+
+        srcStream.pipe(dstStream);
     };
 
     copy('jquery.min.js');
@@ -264,6 +262,59 @@ var genThumbs = function (cfg, onDone) {
 };
 
 /* }}} */
+/* {{{ copyFull */
+
+var copyIfNotExits = function (src, dst, onDone) {
+    fs.exists(dst, function (exists) {
+        if (exists) {
+            if (onDone) {
+                onDone();
+            }
+            return;
+        }
+
+        var srcStream = fs.createReadStream(src);
+        var dstStream = fs.createWriteStream(dst);
+
+        if (onDone) {
+            dstStream.on('close', onDone);
+        }
+        srcStream.pipe(dstStream);
+    });
+};
+
+var copyFull = function (cfg, onDone) {
+    var done = 0;
+    var worker;
+
+    worker = function (pos) {
+        var img = cfg.images[pos];
+        if (!img) {
+            return;
+        }
+        var finish = function (pos) {
+            done++;
+            console.log(done + '/' + cfg.images.length);
+            if (pos + NB_WORKERS < cfg.images.length) {
+                worker(pos + NB_WORKERS);
+            } else if (done == cfg.images.length) {
+                onDone();
+            }
+        };
+        copyIfNotExits(img.path,
+                       path.join(cfg.out, 'full', img.md5 + '.jpg'),
+                       function() {
+                           finish(pos);
+                       });
+    };
+
+    for (i = 0; i < NB_WORKERS; i++) {
+        worker(i);
+    }
+
+};
+
+/* }}} */
 /* {{{ doAll */
 
 var doAll = function (cfg, genJSON, onDone) {
@@ -290,17 +341,7 @@ var doAll = function (cfg, genJSON, onDone) {
         var full = function () {
             var dest = path.join(cfg.out, 'full',  img.md5 + '.jpg');
 
-            if (!fs.existsSync(dest)) {
-                var data = fs.readFileSync(img.path);
-                fs.writeFile(dest, data, function(err) {
-                    if (err) {
-                        throw (err);
-                    }
-                });
-                finish();
-            } else {
-                finish();
-            }
+            copyIfNotExits(src, dest, finish);
         };
 
         var large = function () {
@@ -446,6 +487,9 @@ switch (args[0]) {
     setup(cfg);
     var onDone = function () {
         setup(cfg, true);
+        copyFull(cfg, function() {
+            saveCfg(args[1], cfg);
+        });
     };
     genThumbs(cfg, onDone);
     break;

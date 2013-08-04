@@ -69,6 +69,12 @@ var displayThumbs = function () {
             'class': 'imgContainer'
         });
         $div.data('cfg', img);
+
+        var $fullLink = $('<a />', {
+            href: 'full/' + img.md5 + '.jpg',
+            target: '_blank'
+        });
+
         var $img = $('<img />', {
             'class': 'thumb',
             src: 'thumb/' + img.md5 + '.jpg',
@@ -76,6 +82,7 @@ var displayThumbs = function () {
             height: img.th_h,
             alt: img.l
         });
+        $img.appendTo($fullLink);
 
         var $editButton = $('<img />', {
             'class': 'button',
@@ -102,7 +109,7 @@ var displayThumbs = function () {
             'class': 'clear'
         });
 
-        $div.append($img, $editButton, $removeButton, $legend, $clear);
+        $div.append($fullLink, $editButton, $removeButton, $legend, $clear);
         ul.push($div);
     });
     $('#thumbs').append(ul);
