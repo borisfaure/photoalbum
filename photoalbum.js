@@ -114,6 +114,8 @@ var setup = function (cfg, isEditor) {
     if (isEditor) {
         copy('photoalbum.editor.js');
         copy('photoalbum.editor.css');
+        copy('jquery-ui.min.js');
+        copy('jquery-ui.min.css');
         copy('edit.png');
         copy('del.png');
         workHtmlFile('editor.html');

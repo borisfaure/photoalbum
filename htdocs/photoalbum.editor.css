@@ -24,8 +24,14 @@ body {
     opacity: 1;
 }
 
+#thumbs div.imgContainer {
+    border: dashed 1px;
+    border-color: #aaa;
+}
+
 img.thumb {
     margin-right: 5px;
+    cursor: move;
     float: left;
     clear: left;
 }

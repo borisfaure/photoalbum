@@ -55,9 +55,19 @@ var displayThumbs = function () {
     var $thumbs = $('#thumbs');
     var ul = [];
 
+    $thumbs.sortable({
+        addClasses: false,
+        axis: "y",
+        containment: "parent",
+        cursor: "move",
+        scroll: "true",
+        snap: "true"
+    });
 
     $.each(images, function(index, img) {
-        var $div = $('<div />');
+        var $div = $('<div />', {
+            'class': 'imgContainer'
+        });
         $div.data('cfg', img);
         var $img = $('<img />', {
             'class': 'thumb',
