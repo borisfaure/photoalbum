@@ -411,7 +411,16 @@ var genConfig = function(inPath, cfgPath) {
             if (f + NB_WORKERS < dirs.length) {
                 checkImage(f + NB_WORKERS);
             } else if (done == dirs.length) {
-                util.print('\n' + json.images.length + ' images found');
+                util.print('\n' + json.images.length + ' images found\n');
+                json.images.sort(function(imgA, imgB) {
+                    if (imgA.path < imgB.path) {
+                        return -1;
+                    } else if (imgA.path > imgB.path) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                });
                 saveCfg(cfgPath, json);
             }
         };
@@ -442,7 +451,7 @@ var genConfig = function(inPath, cfgPath) {
         });
     };
     for (i = 0; i < NB_WORKERS; i++) {
-        checkImage(i, onDone);
+        checkImage(i);
     }
 };
 
