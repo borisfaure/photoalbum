@@ -1,0 +1,39 @@
+body {
+    background: #333;
+    color: #ddd;
+    margin: 0;
+}
+
+#thumbs ul {
+    list-style: none;
+}
+#thumbs {
+    width: 100%;
+}
+#thumbs div {
+    width: 100%;
+    display: block;
+    margin: 5px 5px
+}
+
+#thumbs .button {
+    cursor: pointer;
+    opacity: 0.5;
+}
+#thumbs .button:hover {
+    opacity: 1;
+}
+
+img.thumb {
+    margin-right: 5px;
+    float: left;
+    clear: left;
+}
+
+textarea {
+    width: 500px;
+    height: 250px;
+    display: block;
+}
+
+.clear { clear: both; }

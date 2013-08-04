@@ -3,6 +3,13 @@
         "Download more images": "Télécharger d'autres images",
         "Show Thumbnails": "Afficher les miniatures",
         "Play diaporama": "Jouer le diaporama",
-        "Pause diaporama": "Mettre en pause le diaporama"
+        "Pause diaporama": "Mettre en pause le diaporama",
+        "Edit": "Éditer",
+        "Ok": "Ok",
+        "Cancel": "Annuler",
+        "Remove this image from the photo album":
+            "Enlever cette image de l'album",
+        "Are you sure to remove this image from the album?":
+            "Êtes-vous sûr d'enlever cette image de l'album?"
     }
 }

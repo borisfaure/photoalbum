@@ -114,6 +114,8 @@ var setup = function (cfg, isEditor) {
     if (isEditor) {
         copy('photoalbum.editor.js');
         copy('photoalbum.editor.css');
+        copy('edit.png');
+        copy('del.png');
         workHtmlFile('editor.html');
     } else {
         copy('photoalbum.css');
@@ -198,7 +200,7 @@ var genOneThumbnail = function (img, images, onDone) {
                     img.th_h = features.height;
 
                     var o = {
-                        legend: genLegend(img.legend),
+                        l: genLegend(img.legend),
                         md5: img.md5,
                         th_w: img.th_w,
                         th_h: img.th_h
@@ -219,7 +221,7 @@ var genOneThumbnail = function (img, images, onDone) {
             });
         } else {
             var o = {
-                legend: genLegend(img.legend),
+                l: genLegend(img.legend),
                 md5: img.md5,
                 th_w: img.th_w,
                 th_h: img.th_h
@@ -254,87 +256,6 @@ var genThumbs = function (cfg, onDone) {
         genOneThumbnail(img, images, finish);
     };
 
-    for (i = 0; i < NB_WORKERS; i++) {
-        dealImage(cfg, i, onDone);
-    }
-};
-
-/* }}} */
-/* {{{ editor */
-
-var editor = function (cfg) {
-
-    /* TODO: boris */
-    var images = [];
-    var done = 0;
-    var mkdir = function (dir) {
-        var p = path.join(cfg.out, dir);
-        fs.stat(p, function (err) {
-            if (err) {
-                fs.mkdir(p);
-            }
-        });
-    };
-
-    var onDone = function () {
-        console.log('ondone');
-        /* TODO: boris */
-
-        var isEditor = true;
-        setup(cfg, isEditor);
-
-        var source = path.join('htdocs/editor.html');
-        var dest = path.join(cfg.out, 'editor.html');
-        var data = fs.readFileSync(source, {encoding: 'UTF-8'});
-
-        fs.writeFile(dest, data, function(err) {
-            if (err) {
-                throw (err);
-            }
-        });
-    };
-
-    var dealImage;
-    dealImage = function (cfg, pos, onDone) {
-        var name = pos + 1;
-        var o = {
-            width: 256,
-        };
-        var img = cfg.images[pos];
-        if (!img) {
-            return;
-        }
-        o.srcPath = img.path;
-
-        var finish = function () {
-            done++;
-            console.log(done + '/' + cfg.images.length);
-
-            if (pos + NB_WORKERS < cfg.images.length) {
-                dealImage(cfg, pos + NB_WORKERS, onDone);
-            } else if (done == cfg.images.length) {
-                onDone();
-            }
-        };
-        // Generate thumbnail
-        {
-            o.dstPath = path.join(cfg.out, 'thumb', name + '.jpg');
-
-            /* call imagemagick */
-            im.resize(o, function(err, stdout, stderr) {
-                if (err) throw err;
-                im.identify(o.dstPath, function(err, features) {
-                    if (err) throw err;
-                    if (!images[pos]) images[pos] = {};
-
-                    images[pos].th_w = features.width;
-                    images[pos].th_h = features.height;
-
-                    finish();
-                });
-            });
-        }
-    };
     for (i = 0; i < NB_WORKERS; i++) {
         dealImage(cfg, i, onDone);
     }
@@ -521,7 +442,10 @@ switch (args[0]) {
   case "editor":
     var cfg = getJSONFromPath(args[1]);
     setup(cfg);
-    editor(cfg);
+    var onDone = function () {
+        setup(cfg, true);
+    };
+    genThumbs(cfg, onDone);
     break;
   case "genThumbs":
     var cfg = getJSONFromPath(args[1]);

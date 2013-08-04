@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <title>PhotoAlbum Editor</title>
-    <link type="text/css" rel="stylesheet" href="photoalbum.css">
+    <link type="text/css" rel="stylesheet" href="photoalbum.editor.css">
     <script type="text/javascript">
       var cfg = %%CFG%%;
       var translations = %%TRANSLATIONS%%;
@@ -15,8 +15,9 @@
   </head>
   <body>
     <h1>PhotoAlbum Editor</h1>
-    <ul class="thumb" id="thumbs">
-    </ul>
-    <button class="thumb" id="genConfig.json">Generate config.json</button>
+    <div class="thumb" id="thumbs">
+    </div>
+    <button class="thumb" id="genConfigJson">Generate config.json</button>
+    <textarea id="cfgTextarea">%%CFG%%</textarea>
   </body>
 </html>
