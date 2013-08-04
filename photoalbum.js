@@ -109,6 +109,7 @@ var setup = function (cfg, isEditor) {
 
     copy('jquery.min.js');
     copy('markdown.js');
+    copy('black_paper.png');
     if (isEditor) {
         copy('photoalbum.editor.js');
         copy('photoalbum.editor.css');
