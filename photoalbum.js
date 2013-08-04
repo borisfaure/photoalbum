@@ -245,11 +245,12 @@ var genThumbs = function (cfg, onDone) {
 
         var finish = function () {
             done++;
-            console.log(done + '/' + cfg.images.length);
+            util.print('\rgenerating thumbnails: ' + done + '/' + cfg.images.length);
 
             if (pos + NB_WORKERS < cfg.images.length) {
                 dealImage(cfg, pos + NB_WORKERS, onDone);
             } else if (done == cfg.images.length) {
+                util.print('\n');
                 onDone(images);
             }
         };
@@ -294,10 +295,11 @@ var copyFull = function (cfg, onDone) {
         }
         var finish = function (pos) {
             done++;
-            console.log(done + '/' + cfg.images.length);
+            util.print('\rcopying full images: ' + done + '/' + cfg.images.length);
             if (pos + NB_WORKERS < cfg.images.length) {
                 worker(pos + NB_WORKERS);
             } else if (done == cfg.images.length) {
+                util.print('\n');
                 onDone();
             }
         };
@@ -330,10 +332,11 @@ var doAll = function (cfg, genJSON, onDone) {
 
         var finish = function () {
             done++;
-            console.log(done + '/' + cfg.images.length);
+            util.print('\rworking on images: ' + done + '/' + cfg.images.length);
             if (pos + NB_WORKERS < cfg.images.length) {
                 dealImage(cfg, pos + NB_WORKERS, onDone);
             } else if (done == cfg.images.length) {
+                util.print('\n');
                 onDone();
             }
         };
@@ -341,7 +344,7 @@ var doAll = function (cfg, genJSON, onDone) {
         var full = function () {
             var dest = path.join(cfg.out, 'full',  img.md5 + '.jpg');
 
-            copyIfNotExits(src, dest, finish);
+            copyIfNotExits(img.path, dest, finish);
         };
 
         var large = function () {
@@ -392,7 +395,7 @@ var genConfig = function(inPath, cfgPath) {
 
     var dirs = fs.readdirSync(inPath);
 
-    console.log('Checking ' + dirs.length + ' files in ' + inPath);
+    util.print('Checking ' + dirs.length + ' files in ' + inPath);
     var done = 0;
     var checkImage;
     checkImage = function(f) {
@@ -402,12 +405,12 @@ var genConfig = function(inPath, cfgPath) {
 
         var onDone = function () {
             done++;
-            console.log(done + '/' + dirs.length);
+            util.print('\ranalysing files: ' + done + '/' + dirs.length);
 
             if (f + NB_WORKERS < dirs.length) {
                 checkImage(f + NB_WORKERS);
             } else if (done == dirs.length) {
-                console.log(json.images.length + ' images found');
+                util.print('\n' + json.images.length + ' images found');
                 saveCfg(cfgPath, json);
             }
         };
