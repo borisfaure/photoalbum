@@ -16,6 +16,37 @@ var IMAGES_PER_JSON = 50;
 
 var cfgPath;
 
+var editorFiles = [
+    'photoalbum.editor.js',
+    'photoalbum.editor.css',
+    'jquery-ui.min.js',
+    'jquery-ui.min.css',
+    'edit.png',
+    'del.png'
+];
+var indexFiles = [
+    'photoalbum.css',
+    'prev.png',
+    'next.png',
+    'play.png',
+    'pause.png',
+    'thumbs.png',
+    'loading.gif',
+    'photoalbum.js'
+];
+var bothFiles = [
+    'jquery.min.js',
+    'markdown.js',
+    'black_paper.png'
+];
+
+var directories = [
+    'json',
+    'large',
+    'thumb',
+    'full'
+];
+
 /* }}} */
 /* {{{ Utils */
 
@@ -97,53 +128,42 @@ var setup = function (cfg, isEditor) {
         });
     };
 
-    /* TODO: check file dates, do 'à la' make */
-    var copy = function(filename) {
-        var src = path.join('htdocs', filename);
-        var dst = path.join(cfg.out, filename);
-        var srcStream = fs.createReadStream(src);
-        var dstStream = fs.createWriteStream(dst);
 
-        srcStream.pipe(dstStream);
+    var copyFilesList = function (l) {
+        var i;
+        for (i = 0; i < l.length; i++) {
+            var filename = l[i];
+
+            /* TODO: check file dates, do 'à la' make */
+            var src = path.join('htdocs', filename);
+            var dst = path.join(cfg.out, filename);
+            var srcStream = fs.createReadStream(src);
+            var dstStream = fs.createWriteStream(dst);
+
+            srcStream.pipe(dstStream);
+        }
     };
 
-    copy('jquery.min.js');
-    copy('markdown.js');
-    copy('black_paper.png');
     if (isEditor) {
-        copy('photoalbum.editor.js');
-        copy('photoalbum.editor.css');
-        copy('jquery-ui.min.js');
-        copy('jquery-ui.min.css');
-        copy('edit.png');
-        copy('del.png');
+        copyFilesList(editorFiles); // includes editor.html
         workHtmlFile('editor.html');
     } else {
-        copy('photoalbum.css');
-        copy('prev.png');
-        copy('next.png');
-        copy('play.png');
-        copy('pause.png');
-        copy('thumbs.png');
-        copy('loading.gif');
-        copy('photoalbum.js');
+        copyFilesList(indexFiles); // includes index.html
         workHtmlFile('index.html');
     }
+    copyFilesList(bothFiles);
 
-    var mkdir = function (dir) {
+    /* mkdir */
+    var i;
+    for (i = 0; i < directories.length; i++) {
+        var dir = directories[i];
         var p = path.join(cfg.out, dir);
         fs.stat(p, function (err) {
             if (err) {
                 fs.mkdir(p);
             }
         });
-    };
-    mkdir('json');
-    mkdir('large');
-    mkdir('thumb');
-    mkdir('full');
-
-
+    }
 };
 
 /* }}} */
@@ -456,6 +476,85 @@ var genConfig = function(inPath, cfgPath) {
 };
 
 /* }}} */
+/* {{{ cleanup */
+
+var cleanup = function (cfg) {
+    var images = {};
+    var i;
+    for (i = 0; i < cfg.images.length; i++) {
+        var img = cfg.images[i];
+        if (img.md5) {
+            images[img.md5 + '.jpg'] = true;
+        }
+    }
+
+    var cleanupDir = function (allowedFiles, dir) {
+        var dirPath = (dir) ? path.join(cfg.out, dir) : cfg.out;
+        fs.readdir(dirPath, function (err, files) {
+            if (err) {
+                throw err;
+            }
+            var i;
+            for (i = 0; i < files.length; i++) {
+                (function(){
+                    var filename = files[i];
+                    if (!allowedFiles[filename]) {
+                        var f = path.join(dirPath, filename);
+                        fs.stat(f, function (err, stats) {
+                            if (err) {
+                                throw err;
+                            }
+                            if (stats.isDirectory()) {
+                                console.err(f + ' is a directory that should'
+                                            + ' be cleaned up');
+                            } else {
+                                fs.unlink(f, function (err) {
+                                    if (err) {
+                                        throw err;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                })();
+            }
+        });
+    };
+
+    cleanupDir(images, 'full');
+    cleanupDir(images, 'large');
+    cleanupDir(images, 'thumb');
+
+
+    fs.readdir('htdocs', function (err, files) {
+        if (err) {
+            throw err;
+        }
+        var i;
+        var allowedFiles = {};
+        var setupAllowedFiles = function (l) {
+            for (i = 0; i < l.length; i++) {
+                var filename = l[i];
+                allowedFiles[filename] = true;
+            }
+        };
+        setupAllowedFiles(indexFiles);
+        setupAllowedFiles(bothFiles);
+        setupAllowedFiles(directories);
+
+        cleanupDir(allowedFiles);
+    });
+
+    var jsonNb = Math.ceil(cfg.images.length / IMAGES_PER_JSON);
+    var i;
+    var allowedFiles = {};
+    for (i = 0; i < jsonNb; i++) {
+        allowedFiles['images_' + i + '.json'] = true;
+    }
+    cleanupDir(allowedFiles, 'json');
+};
+
+/* }}} */
 /* {{{ main */
 
 var usage = function() {
@@ -473,6 +572,8 @@ var usage = function() {
     + "  generate the JSONs files used by the web client\n"
     + "genImages\n"
     + "  generates thumbnails/large images and copy the full-size images\n"
+    + "cleanup\n"
+    + "  remove unused files in the output directory. Use with caution.\n"
     + "all config_file\n"
     + "  execute setup/genJSONs/genImages\n");
     process.exit(1);
@@ -535,6 +636,10 @@ switch (args[0]) {
     doAll(cfg, true, function () {
         saveCfg(args[1], cfg);
     });
+    break;
+  case "cleanup":
+    var cfg = getJSONFromPath(args[1]);
+    cleanup(cfg);
     break;
   default:
     usage();
