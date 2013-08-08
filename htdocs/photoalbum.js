@@ -8,12 +8,6 @@ var title;
 var intervalId = null;
 var images = [];
 
-/* XXX:
- * Let arr = [a, b, c],
- * "order" of a is 1, 2 for b, and 3 for c
- * "index" of a is 0, 1 for b and 2 for c
- */
-
 var changeHistory = function (order) {
     var newTitle;
 
