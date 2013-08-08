@@ -22,7 +22,8 @@ var editorFiles = [
     'jquery-ui.min.js',
     'jquery-ui.min.css',
     'edit.png',
-    'del.png'
+    'del.png',
+    'list.png'
 ];
 var indexFiles = [
     'photoalbum.css',
@@ -30,14 +31,14 @@ var indexFiles = [
     'next.png',
     'play.png',
     'pause.png',
-    'thumbs.png',
     'loading.gif',
     'photoalbum.js'
 ];
 var bothFiles = [
     'jquery.min.js',
     'markdown.js',
-    'black_paper.png'
+    'black_paper.png',
+    'thumbs.png'
 ];
 
 var directories = [

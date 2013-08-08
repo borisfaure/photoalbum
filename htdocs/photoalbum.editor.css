@@ -9,15 +9,21 @@ h1 {
     text-align: center;
 }
 
+#thumbsIcon {
+    background: #161616;
+    opacity: 0.5;
+    position: fixed;
+    top: 0;
+    right: 0;
+}
+#thumbsIcon:hover {
+    opacity: 1;
+}
+
 #thumbs ul {
     list-style: none;
 }
-#thumbs {
-    width: 100%;
-}
 #thumbs div {
-    width: 100%;
-    display: block;
     margin: 5px 5px
 }
 
@@ -29,9 +35,14 @@ h1 {
     opacity: 1;
 }
 
-#thumbs div.imgContainer {
+.list {
     border: dashed 1px;
     border-color: #aaa;
+}
+.grid {
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
 }
 
 img.thumb {

@@ -57,7 +57,7 @@ var displayThumbs = function () {
 
     $thumbs.sortable({
         addClasses: false,
-        axis: "y",
+        axis: "both",
         containment: "parent",
         cursor: "move",
         scroll: "true",
@@ -66,7 +66,7 @@ var displayThumbs = function () {
 
     $.each(images, function(index, img) {
         var $div = $('<div />', {
-            'class': 'imgContainer'
+            'class': 'imgContainer list'
         });
         $div.data('cfg', img);
 
@@ -85,18 +85,20 @@ var displayThumbs = function () {
         $img.appendTo($fullLink);
 
         var $editButton = $('<img />', {
-            'class': 'button',
+            'class': 'button other',
             src: 'edit.png',
             title: _('Edit')
         }).click(editDescription);
 
         var $removeButton = $('<img />', {
-            'class': 'button',
+            'class': 'button other',
             src: 'del.png',
             title: _('Remove this image from the photo album')
         }).click(removeImage);
 
-        var $legend = $('<div />');
+        var $legend = $('<div />', {
+            'class': 'legend other'
+        });
         if (img.legend) {
             var l = img.legend;
             if (typeof l !== "string") {
@@ -133,4 +135,25 @@ $(document).ready(function() {
         $textarea.val(JSON.stringify(cfg, null, 4));
         return false;
     });
+
+    var $thumbsIcon = $('#thumbsIcon');
+
+    var toGrid;
+    var toList = function () {
+        $thumbsIcon.off('click').on('click', toGrid);
+        $thumbsIcon.attr('src', 'thumbs.png');
+        $('.other').show();
+        $('.imgContainer').removeClass('grid').addClass('list');
+        return false;
+    };
+
+    toGrid = function () {
+        $thumbsIcon.off('click').on('click', toList);
+        $thumbsIcon.attr('src', 'list.png');
+        $('.other').hide();
+        $('.imgContainer').removeClass('list').addClass('grid');
+        return false;
+    };
+
+    $('#thumbsIcon').click(toGrid);
 });
