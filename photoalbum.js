@@ -9,8 +9,11 @@ var path = require('path');
 var im = require('imagemagick');
 var crypto = require('crypto');
 var mime = require('mime');
+var http = require('http');
+var url = require('url');
 
 
+var DEFAULT_HTTP_PORT = 8080;
 var NB_WORKERS = 10;
 var IMAGES_PER_JSON = 50;
 
@@ -556,6 +559,64 @@ var cleanup = function (cfg) {
 };
 
 /* }}} */
+/* {{{ server */
+
+var server = function (cfg) {
+    var http404 = function (response) {
+        response.writeHead(404, {'Content-Type': 'text/html'});
+        response.end('<h1>Not Found</h1>');
+    };
+    var http501 = function (response) {
+        response.writeHead(501, {'Content-Type': 'text/html'});
+        response.end('<h1>Not Implemented</h1>');
+    };
+
+    var serveStaticFile = function (pathname, response) {
+        pathname = pathname.substr(1); // remove the leading '/'
+
+        var filePath = path.join(cfg.out, pathname)
+        fs.stat(filePath, function (err, stat) {
+            if (err) {
+                http404(response);
+                return;
+            }
+
+            var type = mime.lookup(filePath);
+            response.writeHead(200, {
+                'Content-Type': type,
+                'Content-Length': stat.size
+            });
+            var readStream = fs.createReadStream(filePath);
+            readStream.pipe(response);
+        });
+    };
+
+    var handler = function (request, response) {
+        if (request.method === 'GET') {
+            var urlParts = url.parse(request.url, false);
+            switch (urlParts.pathname) {
+              case '/editor.html':
+                /* TODO: boris: regen editor */
+                break;
+              case '/':
+                urlParts.pathname = '/index.html';
+                break;
+            }
+            serveStaticFile(urlParts.pathname, response);
+        } else if (request.method === 'POST') {
+            /* TODO: save */
+        } else {
+            http501(response);
+        }
+    };
+    http.createServer(handler).listen(DEFAULT_HTTP_PORT);
+
+    console.log('Server running at http://localhost:' + DEFAULT_HTTP_PORT + '/'
+                + '\neditor available at http://localhost:' + DEFAULT_HTTP_PORT
+                + '/editor.html');
+};
+
+/* }}} */
 /* {{{ main */
 
 var usage = function() {
@@ -571,8 +632,11 @@ var usage = function() {
     + "  generate an editor.html file in output directory\n"
     + "genJSONs config_file\n"
     + "  generate the JSONs files used by the web client\n"
-    + "genImages\n"
+    + "genImages config_file\n"
     + "  generates thumbnails/large images and copy the full-size images\n"
+    + "server config_file\n"
+    + "  launch an http server to use the editor and the resulting"
+    +  " photoalbum\n"
     + "cleanup\n"
     + "  remove unused files in the output directory. Use with caution.\n"
     + "all config_file\n"
@@ -641,6 +705,10 @@ switch (args[0]) {
   case "cleanup":
     var cfg = getJSONFromPath(args[1]);
     cleanup(cfg);
+    break;
+  case "server":
+    var cfg = getJSONFromPath(args[1]);
+    server(cfg);
     break;
   default:
     usage();
