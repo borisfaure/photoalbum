@@ -11,6 +11,7 @@
             "Enlever cette image de l'album",
         "Are you sure to remove this image from the album?":
             "Êtes-vous sûr d'enlever cette image de l'album?",
+        "Save the configuration": "Sauvegarder la configuration",
         "Display as grid": "Afficher en grille",
         "Display as list": "Afficher sous forme de liste",
         "Generate config.json": "Génerer la configuration"

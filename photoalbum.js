@@ -26,7 +26,8 @@ var editorFiles = [
     'jquery-ui.min.css',
     'edit.png',
     'del.png',
-    'list.png'
+    'list.png',
+    'save.png'
 ];
 var indexFiles = [
     'photoalbum.css',
@@ -73,13 +74,11 @@ var getJSONFromPath = function (path) {
 };
 
 var saveCfg = function (cfgPath, cfg) {
-    fs.writeFile(cfgPath, JSON.stringify(cfg, null, 4),
-                 function(err) {
-                     if (err) {
-                         throw (err);
-                     }
-                 }
-    );
+    fs.writeFile(cfgPath, JSON.stringify(cfg, null, 4), function(err) {
+        if (err) {
+            throw (err);
+        }
+    });
 };
 
 var getTranslations = function (lang) {
@@ -570,7 +569,7 @@ var cleanup = function (cfg) {
 /* }}} */
 /* {{{ server */
 
-var server = function (cfg) {
+var server = function (cfg, cfgPath) {
     var httpSimple = function(code, response) {
         response.writeHead(code, {'Content-Type': 'text/html'});
         response.end('<h1>' + http.STATUS_CODES[code] + '</h1>');
@@ -600,6 +599,10 @@ var server = function (cfg) {
         if (request.method === 'GET') {
             var urlParts = url.parse(request.url, false);
             switch (urlParts.pathname) {
+              case '/foo':
+                response.writeHead(200, {'Content-Type': 'text/plain'});
+                response.end('bar');
+                break;
               case '/editor.html':
                 /* regenerate editor.html on the fly */
                 var source = 'htdocs/editor.html';
@@ -618,7 +621,23 @@ var server = function (cfg) {
             }
             serveStaticFile(urlParts.pathname, response);
         } else if (request.method === 'POST') {
-            /* TODO: save */
+            var urlParts = url.parse(request.url, false);
+            if (urlParts.pathname !== '/save') {
+                httpSimple(501, response);
+                return;
+            }
+            var data = "";
+            request.on('data', function (chunk) {
+                data += chunk;
+            });
+            request.on('end', function () {
+                httpSimple(200, response);
+                fs.writeFile(cfgPath, data, function(err) {
+                    if (err) {
+                        throw (err);
+                    }
+                });
+            })
         } else {
             httpSimple(501, response);
         }
@@ -722,7 +741,7 @@ switch (args[0]) {
     break;
   case "server":
     var cfg = getJSONFromPath(args[1]);
-    server(cfg);
+    server(cfg, args[1]);
     break;
   default:
     usage();

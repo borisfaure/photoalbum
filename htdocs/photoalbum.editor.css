@@ -9,15 +9,14 @@ h1 {
     text-align: center;
 }
 
-#thumbsIcon {
+#thumbsIcon, #saveIcon {
     background: #161616;
-    opacity: 0.5;
     position: fixed;
     top: 0;
     right: 0;
 }
-#thumbsIcon:hover {
-    opacity: 1;
+#saveIcon {
+    top: 33px;
 }
 
 #thumbs ul {
@@ -27,11 +26,11 @@ h1 {
     margin: 5px 5px
 }
 
-#thumbs .button {
+.button {
     cursor: pointer;
     opacity: 0.5;
 }
-#thumbs .button:hover {
+.button:hover {
     opacity: 1;
 }
 

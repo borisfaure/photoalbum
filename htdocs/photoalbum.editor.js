@@ -158,4 +158,32 @@ $(document).ready(function() {
     };
 
     $('#thumbsIcon').click(toGrid);
+
+
+    $.get('foo', function(data) {
+        if (data === 'bar') {
+            $('.standalone').remove();
+            var $save = $('<img />', {
+                src: 'save.png',
+                id: 'saveIcon',
+                'class': 'button',
+                title: _('Save the configuration')
+            }).click(function () {
+                var cfg = {};
+                cfg.images = [];
+                var $thumbs = $('#thumbs');
+                var children = $thumbs.children();
+                $.each(children, function (index, child) {
+                    var $child = $(child);
+                    var img = $child.data('cfg');
+                    cfg.images.push(img);
+                });
+                $.post('save', JSON.stringify(cfg, null, 4))
+                .fail(function () {
+                    alert("unable to save the configuration");
+                });
+            });
+            $('#thumbsIcon').after($save);
+        }
+    });
 });
