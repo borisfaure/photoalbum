@@ -169,7 +169,6 @@ $(document).ready(function() {
                 'class': 'button',
                 title: _('Save the configuration')
             }).click(function () {
-                var cfg = {};
                 cfg.images = [];
                 var $thumbs = $('#thumbs');
                 var children = $thumbs.children();

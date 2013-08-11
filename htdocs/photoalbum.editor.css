@@ -19,13 +19,6 @@ h1 {
     top: 33px;
 }
 
-#thumbs ul {
-    list-style: none;
-}
-#thumbs div {
-    margin: 5px 5px
-}
-
 .button {
     cursor: pointer;
     opacity: 0.5;
@@ -37,11 +30,13 @@ h1 {
 .list {
     border: dashed 1px;
     border-color: #aaa;
+    margin: 5px 34px 0px 0px;
 }
 .grid {
     display: inline-block;
     position: relative;
     vertical-align: middle;
+    margin: 5px;
 }
 
 img.thumb {
