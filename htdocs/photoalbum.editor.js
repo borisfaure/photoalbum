@@ -142,6 +142,7 @@ $(document).ready(function() {
     var toList = function () {
         $thumbsIcon.off('click').on('click', toGrid);
         $thumbsIcon.attr('src', 'thumbs.png');
+        $thumbsIcon.attr('title', _('Display as grid'));
         $('.other').show();
         $('.imgContainer').removeClass('grid').addClass('list');
         return false;
@@ -150,6 +151,7 @@ $(document).ready(function() {
     toGrid = function () {
         $thumbsIcon.off('click').on('click', toList);
         $thumbsIcon.attr('src', 'list.png');
+        $thumbsIcon.attr('title', _(''));
         $('.other').hide();
         $('.imgContainer').removeClass('list').addClass('grid');
         return false;

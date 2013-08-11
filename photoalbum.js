@@ -114,6 +114,12 @@ var genHtmlFile = function (cfg, source, onDone) {
                             JSON.stringify(translations, null, 1));
         data = data.replace(/%%CFG%%/g,
                             JSON.stringify(cfg, null, 1));
+
+        var _ = function (str) {
+            return translations[str] || str;
+        };
+        data = data.replace(/%%DOWNLOAD_MORE%%/g, _('Download more images'));
+        data = data.replace(/%%GENERATE_CFG%%/g, _('Generate config.json'));
         onDone(data);
     });
 };
