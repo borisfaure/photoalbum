@@ -415,49 +415,41 @@ var doAll = function (cfg, genJSON, onDone) {
 };
 
 /* }}} */
-/* {{{ genConfig */
+/* {{{ addImages */
 
-var genConfig = function(inPath, cfgPath) {
-    var json = {
-        images: [],
-        out: 'out/',
-        title: 'My pics',
-        noGPS: true,
-        lang: 'en'
-    };
+var addImages = function (cfg, cfgPath, images, inPath) {
 
-    var dirs = fs.readdirSync(inPath);
-
-    util.print('Checking ' + dirs.length + ' files in ' + inPath);
     var done = 0;
     var checkImage;
     checkImage = function(f) {
-        if (f > dirs.length) {
+        if (f >= images.length) {
             return;
         }
 
         var onDone = function () {
             done++;
-            util.print('\ranalysing files: ' + done + '/' + dirs.length);
+            util.print('\ranalysing files: ' + done + '/' + images.length);
 
-            if (f + NB_WORKERS < dirs.length) {
+            if (f + NB_WORKERS < images.length) {
                 checkImage(f + NB_WORKERS);
-            } else if (done == dirs.length) {
-                util.print('\n' + json.images.length + ' images found\n');
-                json.images.sort(function(imgA, imgB) {
-                    if (imgA.path < imgB.path) {
-                        return -1;
-                    } else if (imgA.path > imgB.path) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                });
-                saveCfg(cfgPath, json);
+            } else if (done == images.length) {
+                util.print('\n' + cfg.images.length + ' images found\n');
+                if (inPath) {
+                    cfg.images.sort(function(imgA, imgB) {
+                        if (imgA.path < imgB.path) {
+                            return -1;
+                        } else if (imgA.path > imgB.path) {
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                    });
+                }
+                saveCfg(cfgPath, cfg);
             }
         };
 
-        var p = path.join(inPath, dirs[f]);
+        var p = (inPath) ? path.join(inPath, images[f]) : images[f];
         var type = mime.lookup(p);
         if (type.indexOf('image') !== 0) {
             onDone();
@@ -477,7 +469,7 @@ var genConfig = function(inPath, cfgPath) {
                     md5: hex,
                     mtime: stat.mtime.getTime()
                 };
-                json.images.push(o);
+                cfg.images.push(o);
                 onDone();
             });
         });
@@ -485,6 +477,24 @@ var genConfig = function(inPath, cfgPath) {
     for (i = 0; i < NB_WORKERS; i++) {
         checkImage(i);
     }
+};
+/* }}} */
+/* {{{ genConfig */
+
+var genConfig = function(inPath, cfgPath) {
+    var json = {
+        images: [],
+        out: 'out/',
+        title: 'My pics',
+        noGPS: true,
+        lang: 'en'
+    };
+
+    var dirs = fs.readdirSync(inPath);
+
+    util.print('Checking ' + dirs.length + ' files in ' + inPath);
+
+    addImages(json, cfgPath, images, inPath)
 };
 
 /* }}} */
@@ -670,6 +680,8 @@ var usage = function() {
     + "server config_file\n"
     + "  launch an http server to use the editor and the resulting"
     +  " photoalbum\n"
+    + "addImages config_file [images...]\n"
+    + "  add the given images to the configuration file\n"
     + "cleanup\n"
     + "  remove unused files in the output directory. Use with caution.\n"
     + "all config_file\n"
@@ -734,6 +746,10 @@ switch (args[0]) {
     doAll(cfg, true, function () {
         saveCfg(args[1], cfg);
     });
+    break;
+  case "addImages":
+    var cfg = getJSONFromPath(args[1]);
+    addImages(cfg, args[1], args.slice(2));
     break;
   case "cleanup":
     var cfg = getJSONFromPath(args[1]);
