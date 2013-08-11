@@ -101,6 +101,22 @@ var genLegend = function (legend) {
     return undefined;
 };
 
+var genHtmlFile = function (cfg, source, onDone) {
+    fs.readFile(source, {encoding: 'UTF-8'}, function (err, data) {
+        if (err) {
+            throw err;
+        }
+        data = data.replace(/%%TITLE%%/g, cfg.title || '');
+        data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
+        data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
+        var translations = getTranslations(cfg.lang);
+        data = data.replace(/%%TRANSLATIONS%%/g,
+                            JSON.stringify(translations, null, 1));
+        data = data.replace(/%%CFG%%/g,
+                            JSON.stringify(cfg, null, 1));
+        onDone(data);
+    });
+};
 
 /* }}} */
 /* {{{ Setup */
@@ -109,26 +125,13 @@ var setup = function (cfg, isEditor) {
 
     var workHtmlFile = function (filename) {
         var source = path.join('htdocs', filename);
-        var dest = path.join(cfg.out, filename);
-        var data = fs.readFileSync(source, {encoding: 'UTF-8'});
-        data = data.replace(/%%TITLE%%/g, cfg.title || '');
-        data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
-        data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
-        var translations = getTranslations(cfg.lang);
-
-        var _ = function (str) {
-            return translations[str] || str;
-        };
-        data = data.replace(/%%DOWNLOAD_MORE%%/g, _('Download more images'));
-        data = data.replace(/%%TRANSLATIONS%%/g,
-                            JSON.stringify(translations, null, 1));
-        data = data.replace(/%%CFG%%/g,
-                            JSON.stringify(cfg, null, 1));
-
-        fs.writeFile(dest, data, function(err) {
-            if (err) {
-                throw (err);
-            }
+        genHtmlFile(cfg, source, function (data) {
+            var dest = path.join(cfg.out, filename);
+            fs.writeFile(dest, data, function(err) {
+                if (err) {
+                    throw (err);
+                }
+            });
         });
     };
 
@@ -596,7 +599,16 @@ var server = function (cfg) {
             var urlParts = url.parse(request.url, false);
             switch (urlParts.pathname) {
               case '/editor.html':
-                /* TODO: boris: regen editor */
+                /* regenerate editor.html on the fly */
+                var source = 'htdocs/editor.html';
+                genHtmlFile(cfg, source, function (data) {
+                    var buf = Buffer(data);
+                    response.writeHead(200, {
+                        'Content-Type': 'text/html',
+                        'Content-Length': buf.length
+                    });
+                    response.end(buf);
+                });
                 break;
               case '/':
                 urlParts.pathname = '/index.html';
@@ -628,7 +640,7 @@ var usage = function() {
     + "  setup files in output directory\n"
     + "genThumbs config_file\n"
     + "  generates thumbnails and copy the full-size images\n"
-    + "editor config_file\n"
+    + "genEditor config_file\n"
     + "  generate an editor.html file in output directory\n"
     + "genJSONs config_file\n"
     + "  generate the JSONs files used by the web client\n"
@@ -661,7 +673,7 @@ switch (args[0]) {
     var cfg = getJSONFromPath(args[1]);
     setup(cfg);
     break;
-  case "editor":
+  case "genEditor":
     var cfg = getJSONFromPath(args[1]);
     setup(cfg);
     var onDone = function () {
