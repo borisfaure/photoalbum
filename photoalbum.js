@@ -571,13 +571,9 @@ var cleanup = function (cfg) {
 /* {{{ server */
 
 var server = function (cfg) {
-    var http404 = function (response) {
-        response.writeHead(404, {'Content-Type': 'text/html'});
-        response.end('<h1>Not Found</h1>');
-    };
-    var http501 = function (response) {
-        response.writeHead(501, {'Content-Type': 'text/html'});
-        response.end('<h1>Not Implemented</h1>');
+    var httpSimple = function(code, response) {
+        response.writeHead(code, {'Content-Type': 'text/html'});
+        response.end('<h1>' + http.STATUS_CODES[code] + '</h1>');
     };
 
     var serveStaticFile = function (pathname, response) {
@@ -586,7 +582,7 @@ var server = function (cfg) {
         var filePath = path.join(cfg.out, pathname)
         fs.stat(filePath, function (err, stat) {
             if (err) {
-                http404(response);
+                httpSimple(404, response);
                 return;
             }
 
@@ -624,7 +620,7 @@ var server = function (cfg) {
         } else if (request.method === 'POST') {
             /* TODO: save */
         } else {
-            http501(response);
+            httpSimple(501, response);
         }
     };
     http.createServer(handler).listen(DEFAULT_HTTP_PORT);
