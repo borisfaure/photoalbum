@@ -107,7 +107,9 @@ var setupDiaporama = function (order) {
         'class': 'nav',
         id: 'prev'
     });
-    $('<div/>').appendTo($prev);
+    $('<div/>', {
+        title: _('Show previous picture')
+    }).tipsy({gravity: 'w'}).appendTo($prev);
 
 
     var $imgContainer = $('<div />');
@@ -123,7 +125,9 @@ var setupDiaporama = function (order) {
         'class': 'nav',
         id: 'next'
     });
-    $('<div/>').appendTo($next);
+    $('<div/>', {
+        title: _('Show next picture')
+    }).tipsy({gravity: 'e'}).appendTo($next);
 
     var $bottom = $('<div />', {
         id: 'bottom'
@@ -133,18 +137,25 @@ var setupDiaporama = function (order) {
     });
     var $thumbs = $('<img />', {
         src: 'thumbs.png',
+        id: 'thumbstoolbar',
         width: 32,
         height: 32,
         title: _('Show Thumbnails')
-    }).click(backToThumbs).appendTo($toolbar);
+    }).tipsy({gravity: 'e'}).click(function () {
+        $(this).tipsy('hide');
+        backToThumbs();
+    }).appendTo($toolbar);
 
     var $playpause;
     var pauseDiaporama;
     var playDiaporama = function () {
-        $playpause.attr('src', 'pause.png');
-        $playpause.attr('title', _('Pause diaporama'));
+        $playpause.prop('src', 'pause.png');
+        $playpause.prop('title', _('Pause diaporama'));
         $playpause.off('click');
-        $playpause.on('click', pauseDiaporama);
+        $playpause.on('click', function () {
+            $(this).tipsy('hide');
+            pauseDiaporama();
+        });
         intervalId = setInterval(nextFn, 3700);
     };
     pauseDiaporama = function () {
@@ -152,15 +163,19 @@ var setupDiaporama = function (order) {
             clearInterval(intervalId);
             intervalId = null;
         }
-        $playpause.attr('src', 'play.png');
-        $playpause.attr('title', _('Play diaporama'));
+        $playpause.prop('src', 'play.png');
+        $playpause.prop('title', _('Play diaporama'));
         $playpause.off('click');
-        $playpause.on('click', playDiaporama);
+        $playpause.on('click', function () {
+            $(this).tipsy('hide');
+            playDiaporama();
+        });
     };
     $playpause = $('<img />', {
         width: 32,
         height: 32,
-    }).appendTo($toolbar);
+        id: 'playpause',
+    }).tipsy({gravity: 'e'}).appendTo($toolbar);
     pauseDiaporama();
 
 
@@ -211,8 +226,8 @@ var setupDiaporama = function (order) {
 
         $diaporama.detach();
 
-        $img.attr('src', 'large/' + img.md5 + '.jpg');
-        $fullLink.attr('href', 'full/' + img.md5 + '.jpg');
+        $img.prop('src', 'large/' + img.md5 + '.jpg');
+        $fullLink.prop('href', 'full/' + img.md5 + '.jpg');
 
 
         $legend.empty();
@@ -265,10 +280,10 @@ var updateThumbs = function (newJson) {
             var order = i + 1;
             if ($child.length) {
                 $img = $($child.children()[0]);
-                $img.attr('src', 'thumb/' + img.md5 + '.jpg');
-                $img.attr('width', img.th_w);
-                $img.attr('height', img.th_h);
-                $img.attr('alt', img.l);
+                $img.prop('src', 'thumb/' + img.md5 + '.jpg');
+                $img.prop('width', img.th_w);
+                $img.prop('height', img.th_h);
+                $img.prop('alt', img.l);
             } else {
                 var $li = $('<li />');
                 $img = $('<img />', {

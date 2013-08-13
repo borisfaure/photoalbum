@@ -88,13 +88,13 @@ var displayThumbs = function () {
             'class': 'button other',
             src: 'edit.png',
             title: _('Edit')
-        }).click(editDescription);
+        }).tipsy().click(editDescription);
 
         var $removeButton = $('<img />', {
             'class': 'button other',
             src: 'del.png',
             title: _('Remove this image from the photo album')
-        }).click(removeImage);
+        }).tipsy().click(removeImage);
 
         var $legend = $('<div />', {
             'class': 'legend other'
@@ -157,12 +157,14 @@ $(document).ready(function() {
     });
 
     var $thumbsIcon = $('#thumbsIcon');
+    $thumbsIcon.prop('title', _('Display as grid'));
+    $thumbsIcon.tipsy({gravity: 'e'});
 
     var toGrid;
     var toList = function () {
         $thumbsIcon.off('click').on('click', toGrid);
-        $thumbsIcon.attr('src', 'thumbs.png');
-        $thumbsIcon.attr('title', _('Display as grid'));
+        $thumbsIcon.prop('src', 'thumbs.png');
+        $thumbsIcon.prop('title', _('Display as grid'));
         $('.other').show();
         $('.imgContainer').removeClass('grid').addClass('list');
         return false;
@@ -170,8 +172,8 @@ $(document).ready(function() {
 
     toGrid = function () {
         $thumbsIcon.off('click').on('click', toList);
-        $thumbsIcon.attr('src', 'list.png');
-        $thumbsIcon.attr('title', _(''));
+        $thumbsIcon.prop('src', 'list.png');
+        $thumbsIcon.prop('title', _('Display as list'));
         $('.other').hide();
         $('.imgContainer').removeClass('list').addClass('grid');
         return false;
@@ -188,7 +190,7 @@ $(document).ready(function() {
                 id: 'saveIcon',
                 'class': 'button',
                 title: _('Save the configuration')
-            }).click(function () {
+            }).tipsy({gravity: 'e'}).click(function () {
                 regenCfg();
                 $.post('save', JSON.stringify(cfg, null, 4))
                 .fail(function () {

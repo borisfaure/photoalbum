@@ -40,6 +40,8 @@ var indexFiles = [
 ];
 var bothFiles = [
     'jquery.min.js',
+    'jquery.tipsy.js',
+    'tipsy.css',
     'markdown.js',
     'black_paper.png',
     'thumbs.png'

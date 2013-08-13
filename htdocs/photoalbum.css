@@ -106,20 +106,27 @@ a:link, a:visited, a:hover, a:active {
 }
 
 #diaporama #legend {
-    margin: 0px 0px 0px 0px;
+    margin: 10px 0px 0px 0px;
 }
 #diaporama #legend p {
     margin: 5px 0px;
 }
 
-#toolbar {
-    float: right;
-    cursor: pointer;
-}
 
-#toolbar img {
+#playpause, #thumbstoolbar {
+    background: #161616;
+    position: fixed;
+    top: 0;
+    right: 0;
     opacity: 0.5;
 }
-#toolbar img:hover {
+
+#playpause {
+    top: 33px;
+}
+
+#playpause:hover, #thumbstoolbar:hover {
     opacity: 1;
 }
+
+
