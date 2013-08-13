@@ -117,21 +117,41 @@ var displayThumbs = function () {
     $('#thumbs').append(ul);
 };
 
+var regenCfg = function () {
+    cfg.images = [];
+    var $thumbs = $('#thumbs');
+    var children = $thumbs.children();
+    $.each(children, function (index, child) {
+        var $child = $(child);
+        var img = $child.data('cfg');
+        cfg.images.push(img);
+    });
+    cfg.title = $('#title').val();
+    cfg.out = $('#outDir').val();
+    cfg.lang = $('#selectLang').children('option:selected').val();
+};
+
 $(document).ready(function() {
+
+    $('#title').val(cfg.title || '');
+    $('#outDir').val(cfg.out || '');
+    var lang = $('html').prop('lang');
+    var l = [];
+    $.each(langs, function (i, lg) {
+        var $o = $('<option />', {
+            text: lg,
+            value: lg
+        }).prop('selected', lg === lang);
+        l.push($o);
+    });
+    $('#selectLang').append(l);
+
 
     displayThumbs();
 
     $('#genConfigJson').click(function () {
-        var $this = $(this);
         var $textarea = $('#cfgTextarea');
-        var $thumbs = $('#thumbs');
-        cfg.images = [];
-        var children = $thumbs.children();
-        $.each(children, function (index, child) {
-            var $child = $(child);
-            var img = $child.data('cfg');
-            cfg.images.push(img);
-        });
+        regenCfg();
         $textarea.val(JSON.stringify(cfg, null, 4));
         return false;
     });
@@ -169,14 +189,7 @@ $(document).ready(function() {
                 'class': 'button',
                 title: _('Save the configuration')
             }).click(function () {
-                cfg.images = [];
-                var $thumbs = $('#thumbs');
-                var children = $thumbs.children();
-                $.each(children, function (index, child) {
-                    var $child = $(child);
-                    var img = $child.data('cfg');
-                    cfg.images.push(img);
-                });
+                regenCfg();
                 $.post('save', JSON.stringify(cfg, null, 4))
                 .fail(function () {
                     alert("unable to save the configuration");

@@ -55,6 +55,22 @@ var directories = [
 /* }}} */
 /* {{{ Utils */
 
+if (!Object.prototype.keys) {
+    Object.prototype.keys = function() {
+        if (typeof this !== 'object') {
+            throw new TypeError('Object.keys called on non-object');
+        }
+        var ret = [];
+        var p;
+        for (p in this) {
+            if (Object.prototype.hasOwnProperty.call(this, p)) {
+                ret.push(p);
+            }
+        }
+        return ret;
+    };
+}
+
 var md5 = function (path, onDone) {
     var md5sum = crypto.createHash('md5');
     var s = fs.ReadStream(path);
@@ -81,14 +97,6 @@ var saveCfg = function (cfgPath, cfg) {
     });
 };
 
-var getTranslations = function (lang) {
-    if (!lang) {
-        return {};
-    }
-    var translations = getJSONFromPath('translations.json');
-    return translations[lang] || {};
-};
-
 var genLegend = function (legend) {
     if (legend) {
         if (typeof legend === "string") {
@@ -108,9 +116,13 @@ var genHtmlFile = function (cfg, source, onDone) {
         data = data.replace(/%%TITLE%%/g, cfg.title || '');
         data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
         data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
-        var translations = getTranslations(cfg.lang);
+        var translations = getJSONFromPath('translations.json');
         data = data.replace(/%%TRANSLATIONS%%/g,
-                            JSON.stringify(translations, null, 1));
+                            JSON.stringify(translations[cfg.lang] || {},
+                                           null, 1));
+        var langs = ["en"].concat(translations.keys());
+        data = data.replace(/%%AVAILABLE_LANGS%%/g,
+                            JSON.stringify(langs, null, 1));
         data = data.replace(/%%CFG%%/g,
                             JSON.stringify(cfg, null, 1));
 
@@ -119,6 +131,9 @@ var genHtmlFile = function (cfg, source, onDone) {
         };
         data = data.replace(/%%DOWNLOAD_MORE%%/g, _('Download more images'));
         data = data.replace(/%%GENERATE_CFG%%/g, _('Generate config.json'));
+        data = data.replace(/%%EDIT_TITLE%%/g, _('Title of the album: '));
+        data = data.replace(/%%OUT_DIR%%/g, _('Output directory of the album: '));
+        data = data.replace(/%%SELECT_LANG%%/g, _('Language of the album: '));
         onDone(data);
     });
 };

@@ -14,6 +14,10 @@
         "Save the configuration": "Sauvegarder la configuration",
         "Display as grid": "Afficher en grille",
         "Display as list": "Afficher sous forme de liste",
-        "Generate config.json": "Génerer la configuration"
+        "Generate config.json": "Génerer la configuration",
+        "Title of the album: ": "Titre de l'album: ",
+        "Language of the album: ": "Langue de l'album: ",
+        "Output directory of the album: ": "Répertoire où mettre l'album: "
+
     }
 }

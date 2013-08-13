@@ -9,6 +9,7 @@
     <script type="text/javascript">
       var cfg = %%CFG%%;
       var translations = %%TRANSLATIONS%%;
+      var langs = %%AVAILABLE_LANGS%%;
     </script>
     <script type="text/javascript" src="jquery.min.js"></script>
     <script type="text/javascript" src="jquery-ui.min.js"></script>
@@ -18,6 +19,15 @@
   <body>
     <h1>PhotoAlbum Editor</h1>
     <img class="button" src="thumbs.png" id="thumbsIcon">
+    <label>%%EDIT_TITLE%%</label>
+    <input type="text" id="title">
+    <br>
+    <label>%%OUT_DIR%%</label>
+    <input type="text" id="outDir">
+    <br>
+    <label>%%SELECT_LANG%%</label>
+    <select id="selectLang"></select>
+    <br>
     <div class="thumb" id="thumbs">
     </div>
     <button class="thumb standalone" id="genConfigJson">%%GENERATE_CFG%%</button>
