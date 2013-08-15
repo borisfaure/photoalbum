@@ -329,8 +329,6 @@ var downloadMore = function (order, onDone) {
         if (onDone) {
             onDone(jsonNb);
         }
-    }).fail(function(jqXHR, textStatus, errorThrown) {
-        window.alert('Unable to fetch configurations files');
     });
 
 };

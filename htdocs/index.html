@@ -5,10 +5,6 @@
     <title>%%TITLE%%</title>
     <link type="text/css" rel="stylesheet" href="photoalbum.css">
     <link type="text/css" rel="stylesheet" href="tipsy.css"/>
-    <script type="text/javascript" src="jquery.min.js"></script>
-    <script type="text/javascript" src="markdown.js"></script>
-    <script type="text/javascript" src="photoalbum.js"></script>
-    <script type='text/javascript' src="jquery.tipsy.js"></script>
     <script type="text/javascript">
       var IMAGES_PER_JSON = %%IMAGES_PER_JSON%%;
       var translations = %%TRANSLATIONS%%;
@@ -22,5 +18,12 @@
     <button class="thumb" id="downloadMore">%%DOWNLOAD_MORE%%</button>
     <div id="diaporama">
     </div>
+    <script>
+      document.write('<script src=' +
+        ('__proto__' in {} ? 'zepto' : 'jquery') + '.min.js><\/script>')
+    </script>
+    <script type="text/javascript" src="markdown.js"></script>
+    <script type="text/javascript" src="photoalbum.js"></script>
+    <script type='text/javascript' src="jquery.tipsy.js"></script>
   </body>
 </html>
