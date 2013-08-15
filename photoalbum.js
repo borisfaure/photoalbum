@@ -188,13 +188,15 @@ var setup = function (cfg, isEditor) {
     /* mkdir */
     var i;
     for (i in directories) {
-        var dir = directories[i];
-        var p = path.join(cfg.out, dir);
-        fs.stat(p, function (err) {
-            if (err) {
-                fs.mkdir(p);
-            }
-        });
+        (function () {
+            var dir = directories[i];
+            var p = path.join(cfg.out, dir);
+            fs.stat(p, function (err) {
+                if (err) {
+                    fs.mkdir(p);
+                }
+            });
+        })();
     }
 };
 
