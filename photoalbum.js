@@ -58,11 +58,13 @@ var directories = [
 /* }}} */
 /* {{{ Utils */
 
-if (!Object.prototype.keys) {
-    Object.prototype.keys = function() {
-        if (typeof this !== 'object') {
-            throw new TypeError('Object.keys called on non-object');
-        }
+var keys = function (o) {
+    if (typeof this !== 'object') {
+        throw new TypeError('Object.keys called on non-object');
+    }
+    if (Object.prototype.keys) {
+        return o.keys();
+    } else {
         var ret = [];
         var p;
         for (p in this) {
@@ -71,8 +73,8 @@ if (!Object.prototype.keys) {
             }
         }
         return ret;
-    };
-}
+    }
+};
 
 var md5 = function (path, onDone) {
     var md5sum = crypto.createHash('md5');
@@ -123,7 +125,7 @@ var genHtmlFile = function (cfg, source, onDone) {
         data = data.replace(/%%TRANSLATIONS%%/g,
                             JSON.stringify(translations[cfg.lang] || {},
                                            null, 1));
-        var langs = ["en"].concat(translations.keys());
+        var langs = ["en"].concat(keys(translations));
         data = data.replace(/%%AVAILABLE_LANGS%%/g,
                             JSON.stringify(langs, null, 1));
         data = data.replace(/%%CFG%%/g,
@@ -161,7 +163,7 @@ var setup = function (cfg, isEditor) {
 
     var copyFilesList = function (l) {
         var i;
-        for (i = 0; i < l.length; i++) {
+        for (i in l) {
             var filename = l[i];
 
             /* TODO: check file dates, do 'à la' make */
@@ -185,7 +187,7 @@ var setup = function (cfg, isEditor) {
 
     /* mkdir */
     var i;
-    for (i = 0; i < directories.len; i++) {
+    for (i in directories) {
         var dir = directories[i];
         var p = path.join(cfg.out, dir);
         fs.stat(p, function (err) {
@@ -243,9 +245,13 @@ var genOneThumbnail = function (img, images, onDone) {
                 dstPath: path.join(cfg.out, 'thumb', img.md5 + '.jpg')
             };
             im.resize(o, function(err, stdout, stderr) {
-                if (err) throw err;
+                if (err) {
+                    throw err;
+                }
                 im.identify(o.dstPath, function(err, features) {
-                    if (err) throw err;
+                    if (err) {
+                        throw err;
+                    }
 
                     img.th_w = features.width;
                     img.th_h = features.height;
@@ -521,7 +527,7 @@ var genConfig = function(inPath, cfgPath) {
 var cleanup = function (cfg) {
     var images = {};
     var i;
-    for (i = 0; i < cfg.images.length; i++) {
+    for (i in cfg.images) {
         var img = cfg.images[i];
         if (img.md5) {
             images[img.md5 + '.jpg'] = true;
@@ -535,7 +541,7 @@ var cleanup = function (cfg) {
                 throw err;
             }
             var i;
-            for (i = 0; i < files.length; i++) {
+            for (i in files) {
                 (function(){
                     var filename = files[i];
                     if (!allowedFiles[filename]) {
@@ -573,7 +579,7 @@ var cleanup = function (cfg) {
         var i;
         var allowedFiles = {};
         var setupAllowedFiles = function (l) {
-            for (i = 0; i < l.length; i++) {
+            for (i in l) {
                 var filename = l[i];
                 allowedFiles[filename] = true;
             }
