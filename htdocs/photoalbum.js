@@ -196,8 +196,8 @@ var setupDiaporama = function (order) {
 
     resizeFn = function() {
         var newHeigth = $(window).height() -
-            Math.max($bottom.height(), $toolbar.height()) - 5;
-        $imgContainer.height(newHeigth);
+            Math.max($bottom.height(), $legend.height()) - 15;
+        $img.height(newHeigth);
         $prev.height(newHeigth);
         $next.height(newHeigth);
     };
