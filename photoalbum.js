@@ -36,8 +36,7 @@ var indexFiles = [
     'play.png',
     'pause.png',
     'loading.gif',
-    'photoalbum.js',
-    'zepto.min.js'
+    'photoalbum.js'
 ];
 var bothFiles = [
     'jquery.min.js',
