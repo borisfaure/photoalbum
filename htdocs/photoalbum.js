@@ -261,6 +261,7 @@ var setupDiaporama = function (order) {
         nextFn();
     });
 
+    checkOrder();
     $(window).resize(resizeFn);
     resizeFn();
     changeHistory(order);
