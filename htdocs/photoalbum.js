@@ -99,7 +99,7 @@ var setupDiaporama = function (order) {
         downloadMore(order, function () {
             setupDiaporama(order);
         });
-        img = {};
+        return;
     }
 
     $diaporama.detach();
