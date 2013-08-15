@@ -1,3 +1,5 @@
+/*jshint browser: true, jquery: true, globalstrict: true*/
+/*global IMAGES_PER_JSON, translations, markdown */
 'use strict';
 
 var totalImages = 0;
@@ -193,9 +195,8 @@ var setupDiaporama = function (order) {
     $('body').append($diaporama);
 
     resizeFn = function() {
-        var newHeigth = $(window).height()
-                      - Math.max($bottom.height(), $toolbar.height())
-                      - 5;
+        var newHeigth = $(window).height() -
+            Math.max($bottom.height(), $toolbar.height()) - 5;
         $imgContainer.height(newHeigth);
         $prev.height(newHeigth);
         $next.height(newHeigth);
@@ -329,7 +330,7 @@ var downloadMore = function (order, onDone) {
             onDone(jsonNb);
         }
     }).fail(function(jqXHR, textStatus, errorThrown) {
-        console.log(errorThrown);
+        window.alert('Unable to fetch configurations files');
     });
 
 };

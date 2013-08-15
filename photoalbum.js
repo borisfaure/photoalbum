@@ -184,7 +184,7 @@ var setup = function (cfg, isEditor) {
 
     /* mkdir */
     var i;
-    for (i = 0; i < directories.length; i++) {
+    for (i = 0; i < directories.len; i++) {
         var dir = directories[i];
         var p = path.join(cfg.out, dir);
         fs.stat(p, function (err) {
@@ -511,7 +511,7 @@ var genConfig = function(inPath, cfgPath) {
 
     util.print('Checking ' + dirs.length + ' files in ' + inPath);
 
-    addImages(json, cfgPath, images, inPath)
+    addImages(json, cfgPath, images, inPath);
 };
 
 /* }}} */
@@ -605,7 +605,7 @@ var server = function (cfg, cfgPath) {
     var serveStaticFile = function (pathname, response) {
         pathname = pathname.substr(1); // remove the leading '/'
 
-        var filePath = path.join(cfg.out, pathname)
+        var filePath = path.join(cfg.out, pathname);
         fs.stat(filePath, function (err, stat) {
             if (err) {
                 httpSimple(404, response);
@@ -623,8 +623,9 @@ var server = function (cfg, cfgPath) {
     };
 
     var handler = function (request, response) {
+        var urlParts;
         if (request.method === 'GET') {
-            var urlParts = url.parse(request.url, false);
+            urlParts = url.parse(request.url, false);
             switch (urlParts.pathname) {
               case '/foo':
                 response.writeHead(200, {'Content-Type': 'text/plain'});
@@ -648,7 +649,7 @@ var server = function (cfg, cfgPath) {
             }
             serveStaticFile(urlParts.pathname, response);
         } else if (request.method === 'POST') {
-            var urlParts = url.parse(request.url, false);
+            urlParts = url.parse(request.url, false);
             if (urlParts.pathname !== '/save') {
                 httpSimple(501, response);
                 return;
@@ -664,7 +665,7 @@ var server = function (cfg, cfgPath) {
                         throw (err);
                     }
                 });
-            })
+            });
         } else {
             httpSimple(501, response);
         }

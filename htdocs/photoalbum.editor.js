@@ -1,3 +1,5 @@
+/*jshint browser: true, jquery: true, globalstrict: true*/
+/*global langs, translations, cfg, markdown */
 'use strict';
 
 var _ = function (str) {
@@ -8,7 +10,7 @@ var removeImage = function () {
     var $removeButton = $(this);
     var $parent = $removeButton.parent();
 
-    if (confirm(_('Are you sure to remove this image from the album?'))) {
+    if (window.confirm(_('Are you sure to remove this image from the album?'))) {
         $parent.remove();
     }
     return false;
@@ -30,10 +32,10 @@ var editDescription = function () {
     });
     var $ok = $('<button />', {
         text: _('Ok')
-    }).click(function () {;
+    }).click(function () {
         $editButton.show();
         l = $textarea.val();
-        img.legend = l.split('\n')
+        img.legend = l.split('\n');
         $legend.html(markdown.toHTML(l));
         return false;
     });
@@ -194,7 +196,7 @@ $(document).ready(function() {
                 regenCfg();
                 $.post('save', JSON.stringify(cfg, null, 4))
                 .fail(function () {
-                    alert("unable to save the configuration");
+                    window.alert("unable to save the configuration");
                 });
             });
             $('#thumbsIcon').after($save);
