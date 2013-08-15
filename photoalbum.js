@@ -510,9 +510,9 @@ var genConfig = function(inPath, cfgPath) {
 
     var dirs = fs.readdirSync(inPath);
 
-    util.print('Checking ' + dirs.length + ' files in ' + inPath);
+    util.print('Checking ' + dirs.length + ' files in ' + inPath + '\n');
 
-    addImages(json, cfgPath, images, inPath);
+    addImages(json, cfgPath, dirs, inPath);
 };
 
 /* }}} */
