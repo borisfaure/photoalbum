@@ -362,7 +362,7 @@ $(document).ready(function() {
 
 
     $(window).on('popstate', function(ev) {
-        var state = ev.originalEvent.state;
+        var state = (ev.originalEvent) ? ev.originalEvent.state : ev.state;
         if (state && state.order > 0) {
             setupDiaporama(state.order);
         } else {
