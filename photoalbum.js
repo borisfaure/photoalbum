@@ -67,7 +67,7 @@ var keys = function (o) {
     } else {
         var ret = [];
         var p;
-        for (p in this) {
+        for (p in o) {
             if (Object.prototype.hasOwnProperty.call(this, p)) {
                 ret.push(p);
             }
