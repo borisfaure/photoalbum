@@ -691,27 +691,19 @@ var server = function (cfg, cfgPath) {
 var usage = function() {
     util.print("usage: photoalbum command\n\n"
     + "command is one of the following:\n"
-    + "genConfig input_directory output_config_file\n"
-    + "  generate a configuration files about files in input_directory\n"
-    + "setup config_file\n"
-    + "  setup files in output directory\n"
-    + "genThumbs config_file\n"
-    + "  generates thumbnails and copy the full-size images\n"
-    + "genEditor config_file\n"
-    + "  generate an editor.html file in output directory\n"
-    + "genJSONs config_file\n"
-    + "  generate the JSONs files used by the web client\n"
-    + "genImages config_file\n"
-    + "  generates thumbnails/large images and copy the full-size images\n"
+    + "config input_directory output_config_file\n"
+    + "    generate a configuration files about files in input_directory\n"
+    + "editor config_file\n"
+    + "    generate an editor.html file in output directory\n"
     + "server config_file\n"
-    + "  launch an http server to use the editor and the resulting"
-    +  " photoalbum\n"
-    + "addImages config_file [images...]\n"
-    + "  add the given images to the configuration file\n"
+    + "    launch an http server to use the editor and the resulting"
+    +    " photoalbum\n"
+    + "add config_file [images...]\n"
+    + "    add the given images to the configuration file\n"
     + "cleanup\n"
-    + "  remove unused files in the output directory. Use with caution.\n"
+    + "    remove unused files in the output directory. Use with caution.\n"
     + "all config_file\n"
-    + "  execute setup/genJSONs/genImages\n");
+    + "    execute setup/genJSONs/genImages\n");
     process.exit(1);
 };
 
@@ -722,17 +714,13 @@ if (args.length < 2) {
 
 
 switch (args[0]) {
-  case "genConfig":
+  case "config":
     if (args.length < 3) {
         usage();
     }
     genConfig(args[1], args[2]);
     break;
-  case "setup":
-    var cfg = getJSONFromPath(args[1]);
-    setup(cfg);
-    break;
-  case "genEditor":
+  case "editor":
     var cfg = getJSONFromPath(args[1]);
     setup(cfg);
     var onDone = function () {
@@ -743,37 +731,11 @@ switch (args[0]) {
     };
     genThumbs(cfg, onDone);
     break;
-  case "genThumbs":
+  case "server":
     var cfg = getJSONFromPath(args[1]);
-    setup(cfg);
-    var onDone = function () {
-        saveCfg(args[1], cfg);
-    };
-    genThumbs(cfg, onDone);
+    server(cfg, args[1]);
     break;
-  case "genJSONs":
-    var cfg = getJSONFromPath(args[1]);
-    var onDone = function (images) {
-        genJSONs(cfg, images, function () {
-            saveCfg(args[1], cfg);
-        });
-    };
-    genThumbs(cfg, onDone);
-    break;
-  case "genImages":
-    var cfg = getJSONFromPath(args[1]);
-    doAll(cfg, false, function () {
-        saveCfg(args[1], cfg);
-    });
-    break;
-  case "all":
-    var cfg = getJSONFromPath(args[1]);
-    setup(cfg);
-    doAll(cfg, true, function () {
-        saveCfg(args[1], cfg);
-    });
-    break;
-  case "addImages":
+  case "add":
     var cfg = getJSONFromPath(args[1]);
     addImages(cfg, args[1], args.slice(2));
     break;
@@ -781,9 +743,12 @@ switch (args[0]) {
     var cfg = getJSONFromPath(args[1]);
     cleanup(cfg);
     break;
-  case "server":
+  case "all":
     var cfg = getJSONFromPath(args[1]);
-    server(cfg, args[1]);
+    setup(cfg);
+    doAll(cfg, true, function () {
+        saveCfg(args[1], cfg);
+    });
     break;
   default:
     usage();
