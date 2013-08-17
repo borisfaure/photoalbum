@@ -89,9 +89,14 @@ var md5 = function (path, onDone) {
     });
 };
 
-var getJSONFromPath = function (path) {
-    var data = fs.readFileSync(path);
-    return JSON.parse(data);
+var getJSONFromPath = function (path, onDone) {
+    var data = fs.readFile(path, function (err, data) {
+        if (err) {
+            throw (err);
+        }
+        var cfg = JSON.parse(data);
+        onDone(cfg);
+    });
 };
 
 var saveCfg = function (cfgPath, cfg) {
@@ -121,25 +126,26 @@ var genHtmlFile = function (cfg, source, onDone) {
         data = data.replace(/%%TITLE%%/g, cfg.title || '');
         data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
         data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
-        var translations = getJSONFromPath('translations.json');
-        data = data.replace(/%%TRANSLATIONS%%/g,
-                            JSON.stringify(translations[cfg.lang] || {},
-                                           null, 1));
-        var langs = ["en"].concat(keys(translations));
-        data = data.replace(/%%AVAILABLE_LANGS%%/g,
-                            JSON.stringify(langs, null, 1));
-        data = data.replace(/%%CFG%%/g,
-                            JSON.stringify(cfg, null, 1));
+        getJSONFromPath('translations.json', function (translations) {
+            data = data.replace(/%%TRANSLATIONS%%/g,
+                                JSON.stringify(translations[cfg.lang] || {},
+                                               null, 1));
+            var langs = ["en"].concat(keys(translations));
+            data = data.replace(/%%AVAILABLE_LANGS%%/g,
+                                JSON.stringify(langs, null, 1));
+            data = data.replace(/%%CFG%%/g,
+                                JSON.stringify(cfg, null, 1));
 
-        var _ = function (str) {
-            return translations[str] || str;
-        };
-        data = data.replace(/%%DOWNLOAD_MORE%%/g, _('Download more images'));
-        data = data.replace(/%%GENERATE_CFG%%/g, _('Generate config.json'));
-        data = data.replace(/%%EDIT_TITLE%%/g, _('Title of the album: '));
-        data = data.replace(/%%OUT_DIR%%/g, _('Output directory of the album: '));
-        data = data.replace(/%%SELECT_LANG%%/g, _('Language of the album: '));
-        onDone(data);
+            var _ = function (str) {
+                return translations[str] || str;
+            };
+            data = data.replace(/%%DOWNLOAD_MORE%%/g, _('Download more images'));
+            data = data.replace(/%%GENERATE_CFG%%/g, _('Generate config.json'));
+            data = data.replace(/%%EDIT_TITLE%%/g, _('Title of the album: '));
+            data = data.replace(/%%OUT_DIR%%/g, _('Output directory of the album: '));
+            data = data.replace(/%%SELECT_LANG%%/g, _('Language of the album: '));
+            onDone(data);
+        });
     });
 };
 
@@ -270,13 +276,25 @@ var genOneThumbnail = function (img, images, onDone) {
             });
         };
         var mtime = stat.mtime.getTime();
-        if (mtime !== img.mtime || !img.md5 ||
-            !fs.existsSync(path.join(cfg.out, 'thumb', img.md5 + '.jpg')))
-        {
-            img.mtime = mtime;
-            md5(img.path, function(hex) {
-                img.md5 = hex;
-                resize();
+        if (mtime !== img.mtime || !img.md5) {
+            fs.exists(path.join(cfg.out, 'thumb', img.md5 + '.jpg'),
+                      function (exist) {
+                if (exists) {
+                    var o = {
+                        l: genLegend(img.legend),
+                        md5: img.md5,
+                        th_w: img.th_w,
+                        th_h: img.th_h
+                    };
+                    images.push(o);
+                    onDone();
+                } else {
+                    img.mtime = mtime;
+                    md5(img.path, function(hex) {
+                        img.md5 = hex;
+                        resize();
+                    });
+                }
             });
         } else {
             var o = {
@@ -414,15 +432,19 @@ var doAll = function (cfg, genJSON, onDone) {
                 heigth: 768
             };
 
-            if (!fs.existsSync(o.dstPath)) {
-                im.resize(o, function(err, stdout, stderr) {
-                    if (err) throw err;
-
+            fs.exists(o.dstPath, function (exists) {
+                if (exists) {
                     full();
-                });
-            } else {
-                full();
-            }
+                } else {
+                    im.resize(o, function(err, stdout, stderr) {
+                        if (err) {
+                            throw err;
+                        }
+
+                        full();
+                    });
+                }
+            });
         };
 
         genOneThumbnail(img, images, large);
@@ -516,11 +538,15 @@ var genConfig = function(inPath, cfgPath) {
         lang: 'en'
     };
 
-    var dirs = fs.readdirSync(inPath);
+    fs.readdir(inPath, function (err, dirs) {
+        if (err) {
+            throw err;
+        }
+        util.print('Checking ' + dirs.length + ' files in ' + inPath + '\n');
 
-    util.print('Checking ' + dirs.length + ' files in ' + inPath + '\n');
+        addImages(json, cfgPath, dirs, inPath);
+    });
 
-    addImages(json, cfgPath, dirs, inPath);
 };
 
 /* }}} */
@@ -722,33 +748,38 @@ switch (args[0]) {
     genConfig(args[1], args[2]);
     break;
   case "editor":
-    var cfg = getJSONFromPath(args[1]);
-    setup(cfg);
-    var onDone = function () {
-        setup(cfg, true);
-        copyFull(cfg, function() {
-            saveCfg(args[1], cfg);
-        });
-    };
-    genThumbs(cfg, onDone);
+    getJSONFromPath(args[1], function (cfg) {
+        setup(cfg);
+        var onDone = function () {
+            setup(cfg, true);
+            copyFull(cfg, function() {
+                saveCfg(args[1], cfg);
+            });
+        };
+        genThumbs(cfg, onDone);
+    });
     break;
   case "server":
-    var cfg = getJSONFromPath(args[1]);
-    server(cfg, args[1]);
+    getJSONFromPath(args[1], function (cfg) {
+        server(cfg, args[1]);
+    });
     break;
   case "add":
-    var cfg = getJSONFromPath(args[1]);
-    addImages(cfg, args[1], args.slice(2));
+    getJSONFromPath(args[1], function (cfg) {
+        addImages(cfg, args[1], args.slice(2));
+    });
     break;
   case "cleanup":
-    var cfg = getJSONFromPath(args[1]);
-    cleanup(cfg);
+    getJSONFromPath(args[1], function (cfg) {
+        cleanup(cfg);
+    });
     break;
   case "all":
-    var cfg = getJSONFromPath(args[1]);
-    setup(cfg);
-    doAll(cfg, true, function () {
-        saveCfg(args[1], cfg);
+    getJSONFromPath(args[1], function (cfg) {
+        setup(cfg);
+        doAll(cfg, true, function () {
+            saveCfg(args[1], cfg);
+        });
     });
     break;
   default:
