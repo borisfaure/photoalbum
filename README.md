@@ -41,6 +41,8 @@ The icons were generated from the ones at http://raphaeljs.com/icons/ .
 ```
 ./photoalbum.js all config.json
 ```
+8. Optional: `gzip` the output files: just type `make` in the ouput directory.
+
 
 Your photoalbum is in the output directory you configured in the editor.
 

@@ -44,7 +44,8 @@ var bothFiles = [
     'tipsy.css',
     'markdown.js',
     'black_paper.png',
-    'thumbs.png'
+    'thumbs.png',
+    'Makefile'
 ];
 
 var directories = [
