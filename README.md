@@ -25,14 +25,22 @@ The icons were generated from the ones at http://raphaeljs.com/icons/ .
   *  npm install mime
 2. Have all your images in a directory `in`
 3. Generate a configuration file:
-    ./photoalbum.js config in/ config.json
+```
+./photoalbum.js config in/ config.json
+```
 4. Generate the editor from that configuration file:
-    ./photoalbum.js editor config.json
+```
+./photoalbum.js editor config.json
+```
 5. Launch the server to edit the configuration file:
-    ./photoalbum.js server config.json
+```
+./photoalbum.js server config.json
+```
 6. Open your brower at `http://localhost:8080/editor.html` and edit your pictures.
 7. Generate all the files:
-    ./photoalbum.js all config.json
+```
+./photoalbum.js all config.json
+```
 
 Your photoalbum is in the output directory you configured in the editor.
 
