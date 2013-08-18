@@ -467,6 +467,13 @@ var doAll = function (cfg, genJSON, onDone) {
 
 var addImages = function (cfg, cfgPath, images, inPath) {
 
+    var md5Dict = {};
+    var i;
+    for (i in cfg.images) {
+        var img = cfg.images[i];
+        md5Dict[img.md5] = true;
+    }
+
     var done = 0;
     var checkImage;
     checkImage = function(f) {
@@ -481,7 +488,7 @@ var addImages = function (cfg, cfgPath, images, inPath) {
             if (f + NB_WORKERS < images.length) {
                 checkImage(f + NB_WORKERS);
             } else if (done == images.length) {
-                util.print('\n' + cfg.images.length + ' images found\n');
+                util.print('\nphoto album now has ' + cfg.images.length + ' images\n');
                 if (inPath) {
                     cfg.images.sort(function(imgA, imgB) {
                         if (imgA.path < imgB.path) {
@@ -511,13 +518,16 @@ var addImages = function (cfg, cfgPath, images, inPath) {
                 return;
             }
             md5(p, function(hex) {
-                var o = {
-                    path: p,
-                    legend: '',
-                    md5: hex,
-                    mtime: stat.mtime.getTime()
-                };
-                cfg.images.push(o);
+                if (!md5Dict[hex]) {
+                    var o = {
+                        path: p,
+                        legend: '',
+                        md5: hex,
+                        mtime: stat.mtime.getTime()
+                    };
+                    cfg.images.push(o);
+                    md5Dict[hex] = true;
+                }
                 onDone();
             });
         });
