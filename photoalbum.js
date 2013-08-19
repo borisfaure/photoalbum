@@ -238,7 +238,7 @@ var genJSONs = function (cfg, images, onDone) {
 /* }}} */
 /* {{{ genThumbs */
 
-var genOneThumbnail = function (img, images, onDone) {
+var genOneThumbnail = function (cfg, img, images, onDone) {
     fs.stat(img.path, function (err, stat) {
         if (err) {
             console.error(err);
@@ -276,9 +276,9 @@ var genOneThumbnail = function (img, images, onDone) {
             });
         };
         var mtime = stat.mtime.getTime();
-        if (mtime !== img.mtime || !img.md5) {
+        if (mtime === img.mtime && img.md5) {
             fs.exists(path.join(cfg.out, 'thumb', img.md5 + '.jpg'),
-                      function (exist) {
+                      function (exists) {
                 if (exists) {
                     var o = {
                         l: genLegend(img.legend),
@@ -297,14 +297,11 @@ var genOneThumbnail = function (img, images, onDone) {
                 }
             });
         } else {
-            var o = {
-                l: genLegend(img.legend),
-                md5: img.md5,
-                th_w: img.th_w,
-                th_h: img.th_h
-            };
-            images.push(o);
-            onDone();
+            img.mtime = mtime;
+            md5(img.path, function(hex) {
+                img.md5 = hex;
+                resize();
+            });
         }
     });
 };
@@ -331,7 +328,7 @@ var genThumbs = function (cfg, onDone) {
                 onDone(images);
             }
         };
-        genOneThumbnail(img, images, finish);
+        genOneThumbnail(cfg, img, images, finish);
     };
 
     for (i = 0; i < NB_WORKERS; i++) {
@@ -447,7 +444,7 @@ var doAll = function (cfg, genJSON, onDone) {
             });
         };
 
-        genOneThumbnail(img, images, large);
+        genOneThumbnail(cfg, img, images, large);
     };
 
 
