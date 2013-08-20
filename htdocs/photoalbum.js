@@ -9,6 +9,7 @@ var isDisplayingThumbnails = true;
 var title;
 var intervalId = null;
 var images = [];
+var img;
 
 var changeHistory = function (order) {
     var newTitle;
@@ -25,7 +26,10 @@ var changeHistory = function (order) {
         return;
     }
 
-    history.pushState({order: order}, newTitle, '#' + order);
+    var hash = '#' + order;
+    if (window.location.hash !== hash) {
+        history.pushState({order: order}, newTitle, hash);
+    }
 };
 
 var backToThumbs = function (md5) {
@@ -102,11 +106,17 @@ var setupDiaporama = function (order) {
 
     var $diaporama = $('#diaporama');
 
-    var img = images[index];
+    img = images[index];
     if (!img) {
-        downloadMore(order, function () {
+        var i;
+        downloadMore(order, function (newJson) {
             setupDiaporama(order);
+            updateThumbs(newJson);
         });
+        /* Download missing */
+        for (i = 0; i < Math.floor(order / IMAGES_PER_JSON); i++) {
+            downloadMore(i * IMAGES_PER_JSON + 1, updateThumbs);
+        }
         return;
     }
 
@@ -224,11 +234,11 @@ var setupDiaporama = function (order) {
     };
 
     var updateImage = function () {
-
         img = images[index];
         if (!img) {
-            downloadMore(order, function () {
+            downloadMore(order, function (newJson) {
                 setupDiaporama(order);
+                updateThumbs(newJson);
             });
             return;
         }
@@ -282,28 +292,38 @@ var updateThumbs = function (newJson) {
     var ul = [];
     var i;
     var m = Math.min(images.length, (newJson + 1) * IMAGES_PER_JSON);
-    for (i = newJson * IMAGES_PER_JSON; i < m; i++) {
+    for (i = 0; i < m; i++) {
         (function(){
             var img = images[i];
             var $img;
-            var $child = $($children[i]);
-            var order = i + 1;
-            if ($child.length) {
-                $img = $($child.children()[0]);
-                $img.prop('id', img.md5);
-                $img.prop('src', 'thumb/' + img.md5 + '.jpg');
-                $img.prop('width', img.th_w);
-                $img.prop('height', img.th_h);
-                $img.prop('alt', img.l);
+            if (img) {
+                var $child = $($children[i]);
+                var order = i + 1;
+                if ($child.length) {
+                    $img = $($child.children()[0]);
+                    $img.prop('id', img.md5);
+                    $img.prop('src', 'thumb/' + img.md5 + '.jpg');
+                    $img.prop('width', img.th_w);
+                    $img.prop('height', img.th_h);
+                    $img.prop('alt', img.l);
+                } else {
+                    var $li = $('<li />');
+                    $img = $('<img />', {
+                        id: img.md5,
+                        src: 'thumb/' + img.md5 + '.jpg',
+                        width: img.th_w,
+                        height: img.th_h,
+                        alt: img.l
+                    }).click(function() {
+                        setupDiaporama(order);
+                    });
+                    $img.appendTo($li);
+
+                    ul.push($li);
+                }
             } else {
                 var $li = $('<li />');
-                $img = $('<img />', {
-                    id: img.md5,
-                    src: 'thumb/' + img.md5 + '.jpg',
-                    width: img.th_w,
-                    height: img.th_h,
-                    alt: img.l
-                }).click(function() {
+                $img = $('<img />').click(function() {
                     setupDiaporama(order);
                 });
                 $img.appendTo($li);
@@ -374,15 +394,16 @@ $(document).ready(function() {
 
     $(window).on('popstate', function(ev) {
         var state = (ev.originalEvent) ? ev.originalEvent.state : ev.state;
-        if (state && state.order > 0) {
-            setupDiaporama(state.order);
-        } else {
-            var hash = parseInt(window.location.hash.substr(1), 10);
-            if (isNaN(hash) || hash <= 0) {
-                downloadMore(1, updateThumbs);
-                backToThumbs();
+        if (state) {
+            if (state.order > 0) {
+                setupDiaporama(state.order);
             } else {
-                setupDiaporama(hash);
+                downloadMore(1, updateThumbs);
+                if (img) {
+                    backToThumbs(img.md5);
+                } else {
+                    backToThumbs();
+                }
             }
         }
     });
@@ -398,7 +419,6 @@ $(document).ready(function() {
             $('#downloadMore').hide();
 
             downloadMore(images.length + 1, onDoneThumbs);
-
         }
     });
 
