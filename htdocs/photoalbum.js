@@ -40,6 +40,7 @@ var backToThumbs = function (md5) {
     changeHistory();
     isDisplayingThumbnails = true;
     if (totalImages != totalImagesDisplayed) {
+        $('#thumbs').empty();
         var jsonBoundary = 0;
         var ul = [];
         $.each(images, function(index, img) {
