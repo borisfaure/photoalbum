@@ -1,6 +1,6 @@
 FILES=$(wildcard *.png *.gif *.html *.js *.css full/*.jpg json/*.json large/*.jpg thumb/*.jpg)
 
-GZ_FILES=$(patsubst %,%.gz,$(FILES))
+GZ_FILES=$(addsuffix .gz,$(FILES))
 
 %.gz: %
 	gzip -c --best $< >| $@
