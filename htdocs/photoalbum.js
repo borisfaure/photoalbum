@@ -28,7 +28,7 @@ var changeHistory = function (order) {
     history.pushState({order: order}, newTitle, '#' + order);
 };
 
-var backToThumbs = function () {
+var backToThumbs = function (md5) {
     if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
@@ -48,6 +48,7 @@ var backToThumbs = function () {
             var $img;
             if (img) {
                 $img = $('<img />', {
+                    id: img.md5,
                     src: 'thumb/' + img.md5 + '.jpg',
                     width: img.th_w,
                     height: img.th_h,
@@ -70,6 +71,12 @@ var backToThumbs = function () {
         $('#thumbs').append(ul);
     }
     $('.thumb').show();
+    if (md5) {
+        var offset = $('#'+md5).offset();
+        $('body,html').animate({
+            scrollTop: offset.top
+        }, 500);
+    }
 };
 
 var _ = function (str) {
@@ -145,7 +152,7 @@ var setupDiaporama = function (order) {
         title: _('Show Thumbnails')
     }).tipsy({gravity: 'e'}).click(function () {
         $(this).tipsy('hide');
-        backToThumbs();
+        backToThumbs(img.md5);
     }).appendTo($toolbar);
 
     var $playpause;
@@ -282,6 +289,7 @@ var updateThumbs = function (newJson) {
             var order = i + 1;
             if ($child.length) {
                 $img = $($child.children()[0]);
+                $img.prop('id', img.md5);
                 $img.prop('src', 'thumb/' + img.md5 + '.jpg');
                 $img.prop('width', img.th_w);
                 $img.prop('height', img.th_h);
@@ -289,6 +297,7 @@ var updateThumbs = function (newJson) {
             } else {
                 var $li = $('<li />');
                 $img = $('<img />', {
+                    id: img.md5,
                     src: 'thumb/' + img.md5 + '.jpg',
                     width: img.th_w,
                     height: img.th_h,
