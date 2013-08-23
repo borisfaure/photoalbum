@@ -266,6 +266,7 @@ var setupDiaporama = function (order) {
         updateImage();
     };
     $prev.click(function () {
+        $(this).children(':first').tipsy('hide');
         pauseDiaporama();
         prevFn();
     });
@@ -275,6 +276,7 @@ var setupDiaporama = function (order) {
         updateImage();
     };
     $next.click(function () {
+        $(this).children(':first').tipsy('hide');
         pauseDiaporama();
         nextFn();
     });
