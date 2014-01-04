@@ -554,6 +554,8 @@ var genConfig = function(inPath, cfgPath) {
         addImages(json, cfgPath, dirs, inPath);
     });
 
+    util.print("Output dir is set top 'out/'\n");
+
 };
 
 /* }}} */
