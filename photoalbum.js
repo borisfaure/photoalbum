@@ -555,6 +555,8 @@ var genConfig = function(inPath, cfgPath) {
     });
 
     util.print("Output dir is set top 'out/'\n");
+    util.print("you can now run '" + process.argv[1] + " editor " +
+               cfgPath + "' to generate an editor\n");
 
 };
 
@@ -763,6 +765,8 @@ switch (args[0]) {
             setup(cfg, true);
             copyFull(cfg, function() {
                 saveCfg(args[1], cfg);
+                util.print("you can now run '" + process.argv[1] + " server " +
+                           args[1] + "' to start a server to edit the album\n");
             });
         };
         genThumbs(cfg, onDone);
