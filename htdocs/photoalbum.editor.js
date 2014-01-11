@@ -98,6 +98,15 @@ var displayThumbs = function () {
             title: _('Remove this image from the photo album')
         }).tipsy().click(removeImage);
 
+        var textDate = "";
+        if (img.metadata && img.metadata.dateTime) {
+            textDate = moment(img.metadata.dateTime).tz(cfg.timezone).format('YYYY-MM-DD HH:MM');
+        }
+        var $dateLabel = $('<label />', {
+            'class': 'other date',
+            'text': textDate
+        });
+
         var $legend = $('<div />', {
             'class': 'legend other'
         });
@@ -113,7 +122,7 @@ var displayThumbs = function () {
             'class': 'clear'
         });
 
-        $div.append($fullLink, $editButton, $removeButton, $legend, $clear);
+        $div.append($fullLink, $editButton, $removeButton, $dateLabel, $legend, $clear);
         ul.push($div);
     });
     $('#thumbs').append(ul);
@@ -126,6 +135,8 @@ var regenCfg = function () {
     $.each(children, function (index, child) {
         var $child = $(child);
         var img = $child.data('cfg');
+        var $label = $child.find('.date');
+        img.metadata.dateTimeStr = $label.text();
         cfg.images.push(img);
     });
     cfg.title = $('#title').val();
@@ -155,6 +166,21 @@ $(document).ready(function() {
 
         displayThumbs();
     };
+
+    $('#selectTimezone').change(function() {
+        cfg.timezone = $(this).find('option:selected').val();
+        var $thumbs = $('#thumbs');
+        var children = $thumbs.children();
+        $.each(children, function (index, child) {
+            var $child = $(child);
+            var img = $child.data('cfg');
+            if (img.metadata && img.metadata.dateTime) {
+                var textDate = moment(img.metadata.dateTime).tz(cfg.timezone).format('YYYY-MM-DD HH:MM');
+                var $label = $child.find('.date');
+                $label.text(textDate);
+            }
+        });
+    });
 
     $('#genConfigJson').click(function () {
         var $textarea = $('#cfgTextarea');
