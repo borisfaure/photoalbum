@@ -136,24 +136,25 @@ var regenCfg = function () {
 
 $(document).ready(function() {
 
-    $('#title').val(cfg.title || '');
-    $('#outDir').val(cfg.out || '');
-    var lang = $('html').prop('lang');
-    var l = [];
-    $.each(langs, function (i, lg) {
-        var $o = $('<option />', {
-            text: lg,
-            value: lg
-        }).prop('selected', lg === lang);
-        l.push($o);
-    });
-    $('#selectLang').append(l);
-    if (cfg.timezone) {
-        $('#selectTimezone').val(cfg.timezone);
-    }
+    var onCfgLoaded = function () {
+        $('#title').val(cfg.title || '');
+        $('#outDir').val(cfg.out || '');
+        var lang = $('html').prop('lang');
+        var l = [];
+        $.each(langs, function (i, lg) {
+            var $o = $('<option />', {
+                text: lg,
+                value: lg
+            }).prop('selected', lg === lang);
+            l.push($o);
+        });
+        $('#selectLang').append(l);
+        if (cfg.timezone) {
+            $('#selectTimezone').val(cfg.timezone);
+        }
 
-
-    displayThumbs();
+        displayThumbs();
+    };
 
     $('#genConfigJson').click(function () {
         var $textarea = $('#cfgTextarea');
@@ -188,22 +189,24 @@ $(document).ready(function() {
     $('#thumbsIcon').click(toGrid);
 
 
-    $.get('foo', function(data) {
-        if (data === 'bar') {
-            $('.standalone').remove();
-            var $save = $('<img />', {
-                src: 'save.png',
-                id: 'saveIcon',
-                'class': 'button',
-                title: _('Save the configuration')
-            }).tipsy({gravity: 'e'}).click(function () {
-                regenCfg();
-                $.post('save', JSON.stringify(cfg, null, 4))
-                .fail(function () {
-                    window.alert("unable to save the configuration");
-                });
+    $.get('/cfg.json', function(data) {
+        cfg = data;
+        /* TODO: boris */
+        $('.standalone').remove();
+        var $save = $('<img />', {
+            src: 'save.png',
+            id: 'saveIcon',
+            'class': 'button',
+            title: _('Save the configuration')
+        }).tipsy({gravity: 'e'}).click(function () {
+            regenCfg();
+            $.post('save', JSON.stringify(cfg, null, 4))
+            .fail(function () {
+                window.alert("unable to save the configuration");
             });
-            $('#thumbsIcon').after($save);
-        }
+        });
+        $('#thumbsIcon').after($save);
+    }).always(function () {;
+        onCfgLoaded(cfg);
     });
 });

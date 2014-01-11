@@ -666,10 +666,8 @@ var server = function (cfg, cfgPath) {
         response.end('<h1>' + http.STATUS_CODES[code] + '</h1>');
     };
 
-    var serveStaticFile = function (pathname, response) {
-        pathname = pathname.substr(1); // remove the leading '/'
+    var serveStaticFile = function (filePath, response) {
 
-        var filePath = path.join(cfg.out, pathname);
         fs.stat(filePath, function (err, stat) {
             if (err) {
                 httpSimple(404, response);
@@ -694,6 +692,8 @@ var server = function (cfg, cfgPath) {
               case '/foo':
                 response.writeHead(200, {'Content-Type': 'text/plain'});
                 response.end('bar');
+                serveStaticFile(path.join(cfg.out, urlParts.pathname.substr(1)),
+                                response);
                 break;
               case '/editor.html':
                 /* regenerate editor.html on the fly */
@@ -707,11 +707,16 @@ var server = function (cfg, cfgPath) {
                     response.end(buf);
                 });
                 break;
+              case '/cfg.json':
+                serveStaticFile(cfgPath, response);
+                break;
               case '/':
-                urlParts.pathname = '/index.html';
+                serveStaticFile(path.join(cfg.out, '/index.html'), response);
+                break;
+              default:
+                serveStaticFile(path.join(cfg.out, urlParts.pathname), response);
                 break;
             }
-            serveStaticFile(urlParts.pathname, response);
         } else if (request.method === 'POST') {
             urlParts = url.parse(request.url, false);
             if (urlParts.pathname !== '/save') {
