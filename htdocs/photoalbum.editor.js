@@ -131,6 +131,7 @@ var regenCfg = function () {
     cfg.title = $('#title').val();
     cfg.out = $('#outDir').val();
     cfg.lang = $('#selectLang').children('option:selected').val();
+    cfg.timezone = $('#selectTimezone').find('option:selected').val();
 };
 
 $(document).ready(function() {
@@ -147,6 +148,9 @@ $(document).ready(function() {
         l.push($o);
     });
     $('#selectLang').append(l);
+    if (cfg.timezone) {
+        $('#selectTimezone').val(cfg.timezone);
+    }
 
 
     displayThumbs();

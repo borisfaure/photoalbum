@@ -144,6 +144,7 @@ var genHtmlFile = function (cfg, source, onDone) {
             data = data.replace(/%%EDIT_TITLE%%/g, _('Title of the album: '));
             data = data.replace(/%%OUT_DIR%%/g, _('Output directory of the album: '));
             data = data.replace(/%%SELECT_LANG%%/g, _('Language of the album: '));
+            data = data.replace(/%%SELECT_TIMEZONE%%/g, _('Select the timezone the images where taken in: '));
             onDone(data);
         });
     });
@@ -275,34 +276,21 @@ var genOneThumbnail = function (cfg, img, images, onDone) {
                 });
             });
         };
-        var mtime = stat.mtime.getTime();
-        if (mtime === img.mtime && img.md5) {
-            fs.exists(path.join(cfg.out, 'thumb', img.md5 + '.jpg'),
-                      function (exists) {
-                if (exists) {
-                    var o = {
-                        l: genLegend(img.legend),
-                        md5: img.md5,
-                        th_w: img.th_w,
-                        th_h: img.th_h
-                    };
-                    images.push(o);
-                    onDone();
-                } else {
-                    img.mtime = mtime;
-                    md5(img.path, function(hex) {
-                        img.md5 = hex;
-                        resize();
-                    });
-                }
-            });
-        } else {
-            img.mtime = mtime;
-            md5(img.path, function(hex) {
-                img.md5 = hex;
+        fs.exists(path.join(cfg.out, 'thumb', img.md5 + '.jpg'),
+                  function (exists) {
+            if (exists) {
+                var o = {
+                    l: genLegend(img.legend),
+                    md5: img.md5,
+                    th_w: img.th_w,
+                    th_h: img.th_h
+                };
+                images.push(o);
+                onDone();
+            } else {
                 resize();
-            });
-        }
+            }
+        });
     });
 };
 
@@ -388,6 +376,25 @@ var copyFull = function (cfg, onDone) {
         worker(i);
     }
 
+};
+
+/* }}} */
+/* {{{ processMetadata */
+
+var processMetadata = function (metadata) {
+    var md = {};
+
+    if (!metadata || !metadata.exif)
+        return md;
+
+    var exif = metadata.exif;
+
+    if (exif.dateTime)
+        md.dateTime = exif.dateTime.toJSON();
+
+    /* TODO: GPS */
+
+    return md;
 };
 
 /* }}} */
@@ -514,18 +521,29 @@ var addImages = function (cfg, cfgPath, images, inPath) {
                 onDone();
                 return;
             }
-            md5(p, function(hex) {
-                if (!md5Dict[hex]) {
-                    var o = {
-                        path: p,
-                        legend: '',
-                        md5: hex,
-                        mtime: stat.mtime.getTime()
-                    };
-                    cfg.images.push(o);
-                    md5Dict[hex] = true;
+            im.readMetadata(p, function (err, metadata) {
+                if (err) {
+                    console.error(err);
+                    onDone();
+                    return;
                 }
-                onDone();
+                console.log(p);
+                metadata = processMetadata(metadata);
+                console.log(metadata);
+                md5(p, function(hex) {
+                    if (!md5Dict[hex]) {
+                        var o = {
+                            path: p,
+                            legend: '',
+                            md5: hex,
+                            metadata: metadata,
+                            mtime: stat.mtime.getTime()
+                        };
+                        cfg.images.push(o);
+                        md5Dict[hex] = true;
+                    }
+                    onDone();
+                });
             });
         });
     };

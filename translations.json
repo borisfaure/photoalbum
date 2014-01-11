@@ -18,6 +18,7 @@
         "Title of the album: ": "Titre de l'album: ",
         "Language of the album: ": "Langue de l'album: ",
         "Output directory of the album: ": "Répertoire où mettre l'album: ",
+        "Select the timezone the images where taken in: ": "Sélectionner le fuseau horaire où ont été prises les photos: ",
         "Show previous picture": "Afficher l'image précédente",
         "Show next picture": "Afficher l'image suivante"
 
