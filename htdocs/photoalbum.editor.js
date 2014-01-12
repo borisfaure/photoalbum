@@ -253,7 +253,7 @@ $(document).ready(function() {
                     m = m.tz(cfg.timezone);
                 }
                 var textDate = m.format('YYYY-MM-DD HH:MM');
-                var $label = $child.find('.date');
+                var $label = $child.find('label.date');
                 $label.text(textDate);
             }
         });
