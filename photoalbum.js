@@ -455,7 +455,9 @@ var genMetadata = function (img) {
     }
 
     if (img.metadata.position && img.metadata.showGPS) {
-        md.pos = img.metadata.position;
+        md.pos = {}
+        md.pos.lat = img.metadata.position.lat.toFixed(6);
+        md.pos.lon = img.metadata.position.lon.toFixed(6);
     }
 
     return md;
