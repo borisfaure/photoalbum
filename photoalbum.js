@@ -67,18 +67,14 @@ var keys = function (o) {
     if (typeof this !== 'object') {
         throw new TypeError('Object.keys called on non-object');
     }
-    if (Object.prototype.keys) {
-        return o.keys();
-    } else {
-        var ret = [];
-        var p;
-        for (p in o) {
-            if (Object.prototype.hasOwnProperty.call(this, p)) {
-                ret.push(p);
-            }
+    var ret = [];
+    var p;
+    for (p in o) {
+        if (Object.prototype.hasOwnProperty.call(o, p)) {
+            ret.push(p);
         }
-        return ret;
     }
+    return ret;
 };
 
 var md5 = function (path, onDone) {
