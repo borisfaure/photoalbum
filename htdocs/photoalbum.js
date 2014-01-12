@@ -199,14 +199,13 @@ var setupDiaporama = function (order) {
     pauseDiaporama();
 
     var renderLegend = function (img) {
-        console.log(img);
         if (img.md && img.md.pos) {
             var p = img.md.pos;
             var $posImg = $('<img />', {
                 'class': 'button other',
                 'src': 'pos.png',
                 'title': _('Show position on a map')
-            }).tipsy({gravity: 'n'});
+            }).tipsy({gravity: 'w'});
             var $posLink = $('<a />', {
                 'class': 'other position',
                 'target': '_blank',
