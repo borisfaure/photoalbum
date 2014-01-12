@@ -1,5 +1,5 @@
 /*jshint browser: true, jquery: true, globalstrict: true*/
-/*global langs, translations, cfg, markdown */
+/*global langs, translations, cfg, markdown, moment */
 'use strict';
 
 var _ = function (str) {
@@ -156,7 +156,7 @@ var displayThumbs = function () {
             if (img.metadata.showGPS) {
                 $posCx.prop('checked', true);
             } else {
-                $posLabel.addClass('striked');
+                $posLink.addClass('striked');
             }
             $posImg.appendTo($posLink);
             $posLink.append(p.lat + ',' + p.lon);
@@ -203,7 +203,7 @@ var regenCfg = function () {
             delete img.metadata.dateTimeStr;
         }
 
-        var $cx = $child.find('input.position');
+        $cx = $child.find('input.position');
         if ($cx.is(':checked')) {
             img.metadata.showGPS = true;
         } else {
@@ -294,7 +294,6 @@ $(document).ready(function() {
 
     $.get('/cfg.json', function(data) {
         cfg = data;
-        /* TODO: boris */
         $('.standalone').remove();
         var $save = $('<img />', {
             src: 'save.png',
@@ -309,7 +308,7 @@ $(document).ready(function() {
             });
         });
         $('#thumbsIcon').after($save);
-    }).always(function () {;
+    }).always(function () {
         onCfgLoaded(cfg);
     });
 });

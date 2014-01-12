@@ -226,7 +226,7 @@ var setupDiaporama = function (order) {
         if (img.l) {
             $legend.append(markdown.toHTML(img.l));
         }
-    }
+    };
 
     var $legend = $('<div />', {
         id: 'legend'
@@ -321,6 +321,7 @@ var updateThumbs = function (newJson) {
         (function(){
             var img = images[i];
             var $img;
+            var $li;
             if (img) {
                 var $child = $($children[i]);
                 var order = i + 1;
@@ -332,7 +333,7 @@ var updateThumbs = function (newJson) {
                     $img.prop('height', img.th_h);
                     $img.prop('alt', img.l);
                 } else {
-                    var $li = $('<li />');
+                    $li = $('<li />');
                     $img = $('<img />', {
                         id: img.md5,
                         src: 'thumb/' + img.md5 + '.jpg',
@@ -347,7 +348,7 @@ var updateThumbs = function (newJson) {
                     ul.push($li);
                 }
             } else {
-                var $li = $('<li />');
+                $li = $('<li />');
                 $img = $('<img />').click(function() {
                     setupDiaporama(order);
                 });

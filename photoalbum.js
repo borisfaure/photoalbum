@@ -394,8 +394,8 @@ var processGPS = function (exif) {
         return undefined;
     }
     if (exif.gpsVersionID == '2, 3, 0, 0') {
-        if (!exif.gpsLatitude || !exif.gpsLatitudeRef
-            || !exif.gpsLongitude || !exif.gpsLongitudeRef) {
+        if (!exif.gpsLatitude || !exif.gpsLatitudeRef ||
+            !exif.gpsLongitude || !exif.gpsLongitudeRef) {
                 return undefined;
         }
         var t;
@@ -456,7 +456,7 @@ var genMetadata = function (img) {
     }
 
     if (img.metadata.position && img.metadata.showGPS) {
-        md.pos = {}
+        md.pos = {};
         md.pos.lat = img.metadata.position.lat.toFixed(6);
         md.pos.lon = img.metadata.position.lon.toFixed(6);
     }
