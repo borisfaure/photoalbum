@@ -619,10 +619,10 @@ var addImages = function (cfg, cfgPath, images, inPath) {
 /* }}} */
 /* {{{ genConfig */
 
-var genConfig = function(inPath, cfgPath) {
+var genConfig = function(inPath, cfgPath, outDirectory) {
     var json = {
         images: [],
-        out: 'out/',
+        out: outDirectory || 'out/',
         title: 'My pics',
         lang: 'en'
     };
@@ -810,7 +810,7 @@ var server = function (cfg, cfgPath) {
 var usage = function() {
     util.print("usage: photoalbum command\n\n"
     + "command is one of the following:\n"
-    + "config input_directory output_config_file\n"
+    + "config input_directory output_config_file [output_directory]\n"
     + "    generate a configuration files about files in input_directory\n"
     + "editor config_file\n"
     + "    generate an editor.html file in output directory\n"
@@ -837,7 +837,7 @@ switch (args[0]) {
     if (args.length < 3) {
         usage();
     }
-    genConfig(args[1], args[2]);
+    genConfig(args[1], args[2], args[3]);
     break;
   case "editor":
     getJSONFromPath(args[1], function (cfg) {
