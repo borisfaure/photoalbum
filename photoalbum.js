@@ -270,6 +270,7 @@ var genOneThumbnail = function (cfg, img, images, onDone) {
 
                     var o = {
                         l: genLegend(img.legend),
+                        md: genMetadata(img),
                         md5: img.md5,
                         th_w: img.th_w,
                         th_h: img.th_h
@@ -284,6 +285,7 @@ var genOneThumbnail = function (cfg, img, images, onDone) {
             if (exists) {
                 var o = {
                     l: genLegend(img.legend),
+                    md: genMetadata(img),
                     md5: img.md5,
                     th_w: img.th_w,
                     th_h: img.th_h
@@ -396,6 +398,18 @@ var processMetadata = function (metadata) {
         md.dateTime = exif.dateTime.toJSON();
 
     /* TODO: GPS */
+
+    return md;
+};
+
+var genMetadata = function (img) {
+    var md = {};
+
+    if (!img.metadata)
+        return md;
+
+    if (img.metadata.dateTimeStr)
+        md.dateStr = img.metadata.dateTimeStr;
 
     return md;
 };

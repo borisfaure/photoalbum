@@ -248,10 +248,12 @@ var setupDiaporama = function (order) {
         $img.prop('src', 'large/' + img.md5 + '.jpg');
         $fullLink.prop('href', 'full/' + img.md5 + '.jpg');
 
-
         $legend.empty();
+        if (img.md && img.md.dateStr) {
+            $('<label />').text(img.md.dateStr).appendTo($legend);
+        }
         if (img.l) {
-            $legend.html(markdown.toHTML(img.l));
+            $legend.append(markdown.toHTML(img.l));
         }
 
         checkOrder();
