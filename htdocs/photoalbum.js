@@ -198,15 +198,38 @@ var setupDiaporama = function (order) {
     }).tipsy({gravity: 'e'}).appendTo($toolbar);
     pauseDiaporama();
 
+    var renderLegend = function (img) {
+        console.log(img);
+        if (img.md && img.md.pos) {
+            var p = img.md.pos;
+            var $posImg = $('<img />', {
+                'class': 'button other',
+                'src': 'pos.png',
+                'title': _('Show position on a map')
+            }).tipsy({gravity: 'n'});
+            var $posLink = $('<a />', {
+                'class': 'other position',
+                'target': '_blank',
+                'href': 'http://www.openstreetmap.org/?mlat=' + p.lat +
+                    '&mlon=' + p.lon + '#map=14/'+ p.lat + '/' + p.lon
+            });
+            $posImg.appendTo($posLink);
+            $posLink.append(p.lat + ',' + p.lon);
+            $posLink.appendTo($legend);
+        }
+        if (img.md && img.md.dateStr) {
+            $('<label />').text(img.md.dateStr).appendTo($legend);
+        }
+        if (img.l) {
+            $legend.append(markdown.toHTML(img.l));
+        }
+    }
 
     var $legend = $('<div />', {
         id: 'legend'
     });
-    if (img.l) {
-        $legend.html(markdown.toHTML(img.l));
-    }
+    renderLegend(img);
     $bottom.append($toolbar, $legend);
-
 
     $diaporama.append($imgContainer, $prev, $next, $bottom);
 
@@ -249,29 +272,7 @@ var setupDiaporama = function (order) {
         $fullLink.prop('href', 'full/' + img.md5 + '.jpg');
 
         $legend.empty();
-        if (img.md && img.md.pos) {
-            var p = img.md.pos;
-            var $posImg = $('<img />', {
-                'class': 'button other',
-                'src': 'pos.png',
-                'title': _('Show position on a map')
-            }).tipsy({gravity: 'n'});
-            var $posLink = $('<a />', {
-                'class': 'other position',
-                'target': '_blank',
-                'href': 'http://www.openstreetmap.org/?mlat=' + p.lat +
-                    '&mlon=' + p.lon + '#map=14/'+ p.lat + '/' + p.lon
-            });
-            $posImg.appendTo($posLink);
-            $posLink.append(p.lat + ',' + p.lon);
-            $posLink.appendTo($legend);
-        }
-        if (img.md && img.md.dateStr) {
-            $('<label />').text(img.md.dateStr).appendTo($legend);
-        }
-        if (img.l) {
-            $legend.append(markdown.toHTML(img.l));
-        }
+        renderLegend(img);
 
         checkOrder();
         $('body').append($diaporama);
