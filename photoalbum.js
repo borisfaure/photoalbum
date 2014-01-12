@@ -815,7 +815,7 @@ var usage = function() {
     +    " photoalbum\n"
     + "add config_file [images...]\n"
     + "    add the given images to the configuration file\n"
-    + "cleanup\n"
+    + "cleanup config_file\n"
     + "    remove unused files in the output directory. Use with caution.\n"
     + "all config_file\n"
     + "    execute setup/genJSONs/genImages\n");
