@@ -106,7 +106,7 @@ var displayThumbs = function () {
             if (cfg.timezone && cfg.timezone !== "") {
                 m = m.tz(cfg.timezone);
             }
-            var textDate = m.format('YYYY-MM-DD HH:MM');
+            var textDate = m.format('YYYY-MM-DD HH:mm');
             var $dateLabel = $('<label />', {
                 'class': 'other date',
                 'text': textDate
@@ -252,7 +252,7 @@ $(document).ready(function() {
                 if (cfg.timezone !== "") {
                     m = m.tz(cfg.timezone);
                 }
-                var textDate = m.format('YYYY-MM-DD HH:MM');
+                var textDate = m.format('YYYY-MM-DD HH:mm');
                 var $label = $child.find('label.date');
                 $label.text(textDate);
             }
