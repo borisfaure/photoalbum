@@ -49,6 +49,7 @@ var bothFiles = [
     'black_paper.png',
     'thumbs.png',
     'pos.png',
+    'time.png',
     'Makefile'
 ];
 

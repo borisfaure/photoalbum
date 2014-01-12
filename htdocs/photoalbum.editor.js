@@ -123,7 +123,11 @@ var displayThumbs = function () {
             } else {
                 $dateLabel.addClass('striked');
             }
-            $date.append($dateCx, $dateLabel);
+            var $dateImg = $('<img />', {
+                'class': 'other',
+                'src': 'time.png'
+            });
+            $date.append($dateCx, $dateImg, $dateLabel);
         }
 
         var $position = $('<div />', {

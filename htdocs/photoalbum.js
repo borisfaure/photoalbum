@@ -218,6 +218,10 @@ var setupDiaporama = function (order) {
             $posLink.appendTo($legend);
         }
         if (img.md && img.md.dateStr) {
+            $('<img />', {
+                'class': 'other',
+                'src': 'time.png'
+            }).appendTo($legend);
             $('<label />').text(img.md.dateStr).appendTo($legend);
         }
         if (img.l) {
