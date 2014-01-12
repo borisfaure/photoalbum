@@ -394,8 +394,10 @@ var processMetadata = function (metadata) {
 
     var exif = metadata.exif;
 
-    if (exif.dateTime)
+    if (exif.dateTime) {
         md.dateTime = exif.dateTime.toJSON();
+        md.showDate = true;
+    }
 
     /* TODO: GPS */
 
@@ -408,7 +410,7 @@ var genMetadata = function (img) {
     if (!img.metadata)
         return md;
 
-    if (img.metadata.dateTimeStr)
+    if (img.metadata.dateTimeStr && img.metadata.showDate)
         md.dateStr = img.metadata.dateTimeStr;
 
     return md;

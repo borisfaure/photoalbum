@@ -18,8 +18,8 @@ var removeImage = function () {
 
 var editDescription = function () {
     var $editButton = $(this);
-    var $parent = $editButton.parent();
-    var $legend = $editButton.next().next();
+    var $parent = $($editButton.parent());
+    var $legend = $parent.find('.legend');
 
     var img = $parent.data('cfg');
 
@@ -102,10 +102,29 @@ var displayThumbs = function () {
         if (img.metadata && img.metadata.dateTime) {
             textDate = moment(img.metadata.dateTime).tz(cfg.timezone).format('YYYY-MM-DD HH:MM');
         }
-        var $dateLabel = $('<label />', {
-            'class': 'other date',
-            'text': textDate
+        var $date = $('<div />', {
+            'class': 'other date'
         });
+        if (img.metadata && img.metadata.dateTime) {
+            var $dateLabel = $('<label />', {
+                'class': 'other date',
+                'text': textDate
+            });
+            var $dateCx = $('<input type="checkbox">').addClass('date').change(function () {
+                if ($(this).is(':checked')) {
+                    $dateLabel.removeClass('striked');
+                } else {
+                    $dateLabel.addClass('striked');
+                }
+            });
+            if (img.metadata && img.metadata.showDate) {
+                $dateCx.prop('checked');
+            } else {
+                $dateLabel.addClass('striked');
+            }
+            $date.append($dateCx, $dateLabel);
+        }
+
 
         var $legend = $('<div />', {
             'class': 'legend other'
@@ -122,7 +141,7 @@ var displayThumbs = function () {
             'class': 'clear'
         });
 
-        $div.append($fullLink, $editButton, $removeButton, $dateLabel, $legend, $clear);
+        $div.append($fullLink, $editButton, $removeButton, $date, $legend, $clear);
         ul.push($div);
     });
     $('#thumbs').append(ul);
@@ -135,8 +154,15 @@ var regenCfg = function () {
     $.each(children, function (index, child) {
         var $child = $(child);
         var img = $child.data('cfg');
-        var $label = $child.find('.date');
-        img.metadata.dateTimeStr = $label.text();
+        var $label = $child.find('label.date');
+
+        var $cx = $child.find('input.date');
+        if ($cx.is(':checked')) {
+            img.metadata.showDate = true;
+            img.metadata.dateTimeStr = $label.text();
+        } else {
+            img.metadata.showDate = false;
+        }
         cfg.images.push(img);
     });
     cfg.title = $('#title').val();

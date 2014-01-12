@@ -53,3 +53,7 @@ textarea {
 }
 
 .clear { clear: both; }
+
+.striked {
+    text-decoration:line-through;
+}
