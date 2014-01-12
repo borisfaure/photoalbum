@@ -386,6 +386,41 @@ var copyFull = function (cfg, onDone) {
 /* }}} */
 /* {{{ processMetadata */
 
+var processGPS = function (exif) {
+    var pos = {};
+    if (!exif.gpsVersionID) {
+        return undefined;
+    }
+    if (exif.gpsVersionID == '2, 3, 0, 0') {
+        if (!exif.gpsLatitude || !exif.gpsLatitudeRef
+            || !exif.gpsLongitude || !exif.gpsLongitudeRef) {
+                return undefined;
+        }
+        var t;
+        t = exif.gpsLatitude.split(', ');
+
+        var conv = function (str) {
+            var t = str.split('/');
+            return parseInt(t[0]) / parseInt(t[1]);
+        };
+        var degree;
+        var lat = conv(t[0]) + conv(t[1])/60 + conv(t[2])/3600;
+        if (exif.gpsLatitudeRef == 'S') {
+            lat = -lat;
+        }
+        t = exif.gpsLongitude.split(', ');
+        var lon = conv(t[0]) + conv(t[1])/60 + conv(t[2])/3600;
+        if (exif.gpsLongitudeRef == 'W') {
+            lon = -lon;
+        }
+
+        pos.lat = lat;
+        pos.lon = lon;
+    }
+
+    return pos;
+};
+
 var processMetadata = function (metadata) {
     var md = {};
 
@@ -399,7 +434,10 @@ var processMetadata = function (metadata) {
         md.showDate = true;
     }
 
-    /* TODO: GPS */
+    md.position = processGPS(exif);
+    if (md.position) {
+        md.showGPS = true;
+    }
 
     return md;
 };
@@ -407,11 +445,17 @@ var processMetadata = function (metadata) {
 var genMetadata = function (img) {
     var md = {};
 
-    if (!img.metadata)
+    if (!img.metadata) {
         return md;
+    }
 
-    if (img.metadata.dateTimeStr && img.metadata.showDate)
+    if (img.metadata.dateTimeStr && img.metadata.showDate) {
         md.dateStr = img.metadata.dateTimeStr;
+    }
+
+    if (img.metadata.position && img.metadata.showGPS) {
+        md.pos = img.metadata.position;
+    }
 
     return md;
 };
@@ -546,9 +590,7 @@ var addImages = function (cfg, cfgPath, images, inPath) {
                     onDone();
                     return;
                 }
-                console.log(p);
                 metadata = processMetadata(metadata);
-                console.log(metadata);
                 md5(p, function(hex) {
                     if (!md5Dict[hex]) {
                         var o = {
@@ -578,7 +620,6 @@ var genConfig = function(inPath, cfgPath) {
         images: [],
         out: 'out/',
         title: 'My pics',
-        noGPS: true,
         lang: 'en'
     };
 
