@@ -98,14 +98,15 @@ var displayThumbs = function () {
             title: _('Remove this image from the photo album')
         }).tipsy().click(removeImage);
 
-        var textDate = "";
-        if (img.metadata && img.metadata.dateTime) {
-            textDate = moment(img.metadata.dateTime).tz(cfg.timezone).format('YYYY-MM-DD HH:MM');
-        }
         var $date = $('<div />', {
             'class': 'other date'
         });
         if (img.metadata && img.metadata.dateTime) {
+            var m = moment(img.metadata.dateTime);
+            if (cfg.timezone && cfg.timezone !== "") {
+                m = m.tz(cfg.timezone);
+            }
+            var textDate = m.format('YYYY-MM-DD HH:MM');
             var $dateLabel = $('<label />', {
                 'class': 'other date',
                 'text': textDate
@@ -117,12 +118,45 @@ var displayThumbs = function () {
                     $dateLabel.addClass('striked');
                 }
             });
-            if (img.metadata && img.metadata.showDate) {
-                $dateCx.prop('checked');
+            if (img.metadata.showDate) {
+                $dateCx.prop('checked', true);
             } else {
                 $dateLabel.addClass('striked');
             }
             $date.append($dateCx, $dateLabel);
+        }
+
+        var $position = $('<div />', {
+            'class': 'other position'
+        });
+        if (img.metadata && img.metadata.position) {
+            var p = img.metadata.position;
+            var $posImg = $('<img />', {
+                'class': 'button other',
+                'src': 'pos.png',
+                'title': _('Show position on a map')
+            }).tipsy();
+            var $posLink = $('<a />', {
+                'class': 'other position',
+                'target': '_blank',
+                'href': 'http://www.openstreetmap.org/?mlat=' + p.lat +
+                    '&mlon=' + p.lon + '#map=14/'+ p.lat + '/' + p.lon
+            });
+            var $posCx = $('<input type="checkbox">').addClass('position').change(function () {
+                if ($(this).is(':checked')) {
+                    $posLink.removeClass('striked');
+                } else {
+                    $posLink.addClass('striked');
+                }
+            });
+            if (img.metadata.showGPS) {
+                $posCx.prop('checked', true);
+            } else {
+                $posLabel.addClass('striked');
+            }
+            $posImg.appendTo($posLink);
+            $posLink.append(p.lat + ',' + p.lon);
+            $position.append($posCx, $posLink);
         }
 
 
@@ -141,7 +175,7 @@ var displayThumbs = function () {
             'class': 'clear'
         });
 
-        $div.append($fullLink, $editButton, $removeButton, $date, $legend, $clear);
+        $div.append($fullLink, $editButton, $removeButton, $position, $date, $legend, $clear);
         ul.push($div);
     });
     $('#thumbs').append(ul);
@@ -162,6 +196,15 @@ var regenCfg = function () {
             img.metadata.dateTimeStr = $label.text();
         } else {
             img.metadata.showDate = false;
+            delete img.metadata.dateTimeStr;
+        }
+
+        var $cx = $child.find('input.position');
+        if ($cx.is(':checked')) {
+            img.metadata.showGPS = true;
+        } else {
+            img.metadata.showGPS = false;
+            delete img.metadata.dateTimeStr;
         }
         cfg.images.push(img);
     });
@@ -201,7 +244,11 @@ $(document).ready(function() {
             var $child = $(child);
             var img = $child.data('cfg');
             if (img.metadata && img.metadata.dateTime) {
-                var textDate = moment(img.metadata.dateTime).tz(cfg.timezone).format('YYYY-MM-DD HH:MM');
+                var m = moment(img.metadata.dateTime);
+                if (cfg.timezone !== "") {
+                    m = m.tz(cfg.timezone);
+                }
+                var textDate = m.format('YYYY-MM-DD HH:MM');
                 var $label = $child.find('.date');
                 $label.text(textDate);
             }

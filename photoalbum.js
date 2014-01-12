@@ -48,6 +48,7 @@ var bothFiles = [
     'markdown.js',
     'black_paper.png',
     'thumbs.png',
+    'pos.png',
     'Makefile'
 ];
 
