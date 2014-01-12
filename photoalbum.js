@@ -692,12 +692,6 @@ var server = function (cfg, cfgPath) {
         if (request.method === 'GET') {
             urlParts = url.parse(request.url, false);
             switch (urlParts.pathname) {
-              case '/foo':
-                response.writeHead(200, {'Content-Type': 'text/plain'});
-                response.end('bar');
-                serveStaticFile(path.join(cfg.out, urlParts.pathname.substr(1)),
-                                response);
-                break;
               case '/editor.html':
                 /* regenerate editor.html on the fly */
                 var source = 'htdocs/editor.html';
