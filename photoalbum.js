@@ -20,6 +20,7 @@ var IMAGES_PER_JSON = 50;
 var cfgPath;
 
 var editorFiles = [
+    'editor.html',
     'photoalbum.editor.js',
     'photoalbum.editor.css',
     'jquery-ui.min.js',
@@ -33,6 +34,7 @@ var editorFiles = [
     'save.png'
 ];
 var indexFiles = [
+    'index.html',
     'photoalbum.css',
     'prev.png',
     'next.png',
@@ -837,7 +839,7 @@ switch (args[0]) {
     break;
   case "editor":
     getJSONFromPath(args[1], function (cfg) {
-        setup(cfg);
+        setup(cfg, false);
         var onDone = function () {
             setup(cfg, true);
             copyFull(cfg, function() {
@@ -851,6 +853,7 @@ switch (args[0]) {
     break;
   case "server":
     getJSONFromPath(args[1], function (cfg) {
+        setup(cfg, false);
         server(cfg, args[1]);
     });
     break;
@@ -866,7 +869,7 @@ switch (args[0]) {
     break;
   case "all":
     getJSONFromPath(args[1], function (cfg) {
-        setup(cfg);
+        setup(cfg, false);
         doAll(cfg, true, function () {
             saveCfg(args[1], cfg);
         });
