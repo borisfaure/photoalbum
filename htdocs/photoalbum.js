@@ -224,7 +224,9 @@ var setupDiaporama = function (order) {
             $('<label />').text(img.md.dateStr).appendTo($legend);
         }
         if (img.l) {
-            $legend.append(markdown.toHTML(img.l));
+            var $d = $('<div />').addClass('legend');
+            $d.append(markdown.toHTML(img.l));
+            $legend.append($d);
         }
     };
 

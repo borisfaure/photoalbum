@@ -41,7 +41,8 @@ var indexFiles = [
     'play.png',
     'pause.png',
     'loading.gif',
-    'photoalbum.js'
+    'photoalbum.js',
+    'brickwall.png'
 ];
 var bothFiles = [
     'jquery.min.js',

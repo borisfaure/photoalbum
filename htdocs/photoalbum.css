@@ -108,7 +108,10 @@ a:link, a:visited, a:hover, a:active {
 #diaporama #legend {
     margin: 5px 0px 0px 0px;
 }
-#diaporama #legend p {
+#diaporama #legend div.legend {
+    background: #ebebeb;
+    background-image: url("brickwall.png");
+    color: #161616;
     margin: 5px 0px;
 }
 
