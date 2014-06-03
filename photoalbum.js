@@ -635,6 +635,12 @@ var genConfig = function(inPath, cfgPath, outDirectory) {
         addImages(json, cfgPath, dirs, inPath);
     });
 
+    fs.stat(outDirectory, function (err) {
+        if (err) {
+            fs.mkdir(outDirectory);
+        }
+    });
+
     util.print("Output dir is set to " + outDirectory + "\n");
     util.print("you can now run '" + process.argv[1] + " editor " +
                cfgPath + "' to generate an editor\n");
