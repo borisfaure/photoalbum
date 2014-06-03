@@ -188,10 +188,10 @@ var setup = function (cfg, isEditor) {
     };
 
     if (isEditor) {
-        copyFilesList(editorFiles); // includes editor.html
+        copyFilesList(editorFiles);
         workHtmlFile('editor.html');
     } else {
-        copyFilesList(indexFiles); // includes index.html
+        copyFilesList(indexFiles);
         workHtmlFile('index.html');
     }
     copyFilesList(bothFiles);
