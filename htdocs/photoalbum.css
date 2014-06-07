@@ -58,7 +58,7 @@ div {
     top: 0px;
     width: 15%;
     height: auto;
-    position: absolute;
+    position: fixed;
     overflow: hidden;
     opacity: 0.5;
 }
