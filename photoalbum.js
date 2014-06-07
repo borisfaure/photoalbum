@@ -498,9 +498,18 @@ var doAll = function (cfg, genJSON, onDone) {
             var o = {
                 srcPath: img.path,
                 dstPath: path.join(cfg.out, 'large', img.md5 + '.jpg'),
-                width: 1024,
-                heigth: 768
+                height: 768,
+                progressive: true
             };
+            var d = 1;
+            while (img.height / d > 700) {
+                d *= 2;
+            }
+            if (d > 1) {
+                d /= 2;
+            }
+            o.height = img.height / d;
+            o.width = img.width / d;
 
             fs.exists(o.dstPath, function (exists) {
                 if (exists) {
