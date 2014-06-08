@@ -392,7 +392,7 @@ var processGPS = function (exif) {
     if (!exif.gpsVersionID) {
         return undefined;
     }
-    if (exif.gpsVersionID == '2, 3, 0, 0') {
+    if (exif.gpsVersionID === '2, 3, 0, 0' || exif.gpsVersionID === '2.3.0.0') {
         if (!exif.gpsLatitude || !exif.gpsLatitudeRef ||
             !exif.gpsLongitude || !exif.gpsLongitudeRef) {
                 return undefined;
@@ -402,14 +402,18 @@ var processGPS = function (exif) {
 
         var conv = function (str) {
             var t = str.split('/');
-            return parseInt(t[0]) / parseInt(t[1]);
+            if (t.length == 2) {
+                return parseInt(t[0]) / parseInt(t[1]);
+            } else {
+                return parseInt(t[0]);
+            }
         };
         var degree;
         var lat = conv(t[0]) + conv(t[1])/60 + conv(t[2])/3600;
         if (exif.gpsLatitudeRef == 'S') {
             lat = -lat;
         }
-        t = exif.gpsLongitude.split(', ');
+        t = exif.gpsLongitude.split(',');
         var lon = conv(t[0]) + conv(t[1])/60 + conv(t[2])/3600;
         if (exif.gpsLongitudeRef == 'W') {
             lon = -lon;
@@ -433,6 +437,9 @@ var processMetadata = function (metadata) {
     if (exif.dateTime) {
         md.dateTime = exif.dateTime.toJSON();
         md.showDate = true;
+    } else if (exif.dateTimeOriginal) {
+        md.dateTime = exif.dateTimeOriginal.toJSON();
+        md.showDate = true;
     }
 
     md.position = processGPS(exif);
@@ -454,7 +461,8 @@ var genMetadata = function (img) {
         md.dateStr = img.metadata.dateTimeStr;
     }
 
-    if (img.metadata.position && img.metadata.showGPS) {
+    if (img.metadata.position && img.metadata.showGPS &&
+        img.metadata.position.lat && img.metadata.position.lon) {
         md.pos = {};
         md.pos.lat = img.metadata.position.lat.toFixed(6);
         md.pos.lon = img.metadata.position.lon.toFixed(6);
