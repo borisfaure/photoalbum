@@ -255,6 +255,7 @@ var genOneThumbnail = function (cfg, img, images, onDone) {
             var o = {
                 width: 256,
                 srcPath: img.path,
+                strip: true,
                 dstPath: path.join(cfg.out, 'thumb', img.md5 + '.jpg')
             };
             im.resize(o, function(err, stdout, stderr) {
@@ -507,6 +508,7 @@ var doAll = function (cfg, genJSON, onDone) {
                 srcPath: img.path,
                 dstPath: path.join(cfg.out, 'large', img.md5 + '.jpg'),
                 height: 768,
+                strip: true,
                 progressive: true
             };
             var d = 1;
