@@ -436,7 +436,11 @@ var processMetadata = function (metadata) {
     var exif = metadata.exif;
 
     if (exif.dateTime) {
-        md.dateTime = exif.dateTime.toJSON();
+        if (exif.dateTimeOriginal && exif.dateTimeOriginal < exif.dateTime) {
+            md.dateTime = exif.dateTimeOriginal.toJSON();
+        } else {
+            md.dateTime = exif.dateTime.toJSON();
+        }
         md.showDate = true;
     } else if (exif.dateTimeOriginal) {
         md.dateTime = exif.dateTimeOriginal.toJSON();
