@@ -103,6 +103,12 @@ var displayThumbs = function () {
         });
         if (img.metadata && img.metadata.dateTime) {
             var m = moment(img.metadata.dateTime);
+            if (cfg.time_delta && cfg.time_delta !== 0) {
+                if (cfg.time_delta > 0)
+                    m = m.add('hours', cfg.time_delta);
+                else
+                    m = m.subtract('hours', -cfg.time_delta);
+            }
             if (cfg.timezone && cfg.timezone !== "") {
                 m = m.tz(cfg.timezone);
             }
@@ -216,6 +222,7 @@ var regenCfg = function () {
     cfg.out = $('#outDir').val();
     cfg.lang = $('#selectLang').children('option:selected').val();
     cfg.timezone = $('#selectTimezone').find('option:selected').val();
+    cfg.time_deltat = $('#timeDelta').val();
 };
 
 $(document).ready(function() {
@@ -236,6 +243,9 @@ $(document).ready(function() {
         if (cfg.timezone) {
             $('#selectTimezone').val(cfg.timezone);
         }
+        if (cfg.time_delta) {
+            $('#timeDelta').val(cfg.time_delta);
+        }
 
         displayThumbs();
     };
@@ -249,7 +259,37 @@ $(document).ready(function() {
             var img = $child.data('cfg');
             if (img.metadata && img.metadata.dateTime) {
                 var m = moment(img.metadata.dateTime);
-                if (cfg.timezone !== "") {
+                if (cfg.time_delta && cfg.time_delta !== 0) {
+                    if (cfg.time_delta > 0)
+                        m = m.add('hours', cfg.time_delta);
+                    else
+                        m = m.subtract('hours', -cfg.time_delta);
+                }
+                if (cfg.timezone && cfg.timezone !== "") {
+                    m = m.tz(cfg.timezone);
+                }
+                var textDate = m.format('YYYY-MM-DD HH:mm');
+                var $label = $child.find('label.date');
+                $label.text(textDate);
+            }
+        });
+    });
+    $('#timeDelta').change(function() {
+        cfg.time_delta = $(this).val();
+        var $thumbs = $('#thumbs');
+        var children = $thumbs.children();
+        $.each(children, function (index, child) {
+            var $child = $(child);
+            var img = $child.data('cfg');
+            if (img.metadata && img.metadata.dateTime) {
+                var m = moment(img.metadata.dateTime);
+                if (cfg.time_delta && cfg.time_delta !== 0) {
+                    if (cfg.time_delta > 0)
+                        m = m.add('hours', cfg.time_delta);
+                    else
+                        m = m.subtract('hours', -cfg.time_delta);
+                }
+                if (cfg.timezone && cfg.timezone !== "") {
                     m = m.tz(cfg.timezone);
                 }
                 var textDate = m.format('YYYY-MM-DD HH:mm');
