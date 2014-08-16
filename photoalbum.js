@@ -243,7 +243,7 @@ var genJSONs = function (cfg, images, onDone) {
 /* }}} */
 /* {{{ genThumbs */
 
-var genOneThumbnail = function (cfg, img, images, onDone) {
+var genOneThumbnail = function (cfg, pos, img, images, onDone) {
     fs.stat(img.path, function (err, stat) {
         if (err) {
             console.error(err);
@@ -277,7 +277,7 @@ var genOneThumbnail = function (cfg, img, images, onDone) {
                         th_w: img.th_w,
                         th_h: img.th_h
                     };
-                    images.push(o);
+                    images[pos] = o;
                     onDone();
                 });
             });
@@ -301,7 +301,7 @@ var genOneThumbnail = function (cfg, img, images, onDone) {
     });
 };
 
-var genThumbs = function (cfg, onDone) {
+var genThumbs = function (cfg, onEnd) {
     var i;
     var done = 0;
     var images = [];
@@ -323,11 +323,11 @@ var genThumbs = function (cfg, onDone) {
                 onDone(images);
             }
         };
-        genOneThumbnail(cfg, img, images, finish);
+        genOneThumbnail(cfg, pos, img, images, finish);
     };
 
     for (i = 0; i < NB_WORKERS; i++) {
-        dealImage(cfg, i, onDone);
+        dealImage(cfg, i, onEnd);
     }
 };
 
@@ -508,39 +508,48 @@ var doAll = function (cfg, genJSON, onDone) {
         };
 
         var large = function () {
-            var o = {
-                srcPath: img.path,
-                dstPath: path.join(cfg.out, 'large', img.md5 + '.jpg'),
-                height: 768,
-                strip: true,
-                progressive: true
-            };
-            var d = 1;
-            while (img.height / d > 700) {
-                d *= 2;
-            }
-            if (d > 1) {
-                d /= 2;
-            }
-            o.height = img.height / d;
-            o.width = img.width / d;
-
-            fs.exists(o.dstPath, function (exists) {
-                if (exists) {
-                    full();
-                } else {
-                    im.resize(o, function(err, stdout, stderr) {
-                        if (err) {
-                            throw err;
-                        }
-
-                        full();
-                    });
+            im.identify(img.path, function(err, features) {
+                if (err) {
+                    throw err;
                 }
+
+                img.width = features.width;
+                img.height = features.height;
+
+                var o = {
+                    srcPath: img.path,
+                    dstPath: path.join(cfg.out, 'large', img.md5 + '.jpg'),
+                    height: 768,
+                    strip: true,
+                    progressive: true
+                };
+                var d = 1.0;
+                while (img.height / d > 700) {
+                    d *= 2;
+                }
+                if (d > 1) {
+                    d /= 2;
+                }
+                o.height = img.height / d;
+                o.width = img.width / d;
+
+                fs.exists(o.dstPath, function (exists) {
+                    if (exists) {
+                        full();
+                    } else {
+                        im.resize(o, function(err, stdout, stderr) {
+                            if (err) {
+                                throw err;
+                            }
+
+                            full();
+                        });
+                    }
+                });
             });
         };
 
-        genOneThumbnail(cfg, img, images, large);
+        genOneThumbnail(cfg, pos, img, images, large);
     };
 
 
@@ -626,7 +635,7 @@ var addImages = function (cfg, cfgPath, images, inPath) {
                             metadata: metadata,
                             mtime: stat.mtime.getTime()
                         };
-                        cfg.images.push(o);
+                        cfg.images[f] = o;
                         md5Dict[hex] = true;
                     }
                     onDone();
