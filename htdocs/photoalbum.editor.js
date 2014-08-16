@@ -139,35 +139,54 @@ var displayThumbs = function () {
         var $position = $('<div />', {
             'class': 'other position'
         });
+        var p;
         if (img.metadata && img.metadata.position) {
-            var p = img.metadata.position;
-            var $posImg = $('<img />', {
-                'class': 'button other',
-                'src': 'pos.png',
-                'title': _('Show position on a map')
-            }).tipsy();
-            var $posLink = $('<a />', {
-                'class': 'other position',
-                'target': '_blank',
-                'href': 'http://www.openstreetmap.org/?mlat=' + p.lat +
-                    '&mlon=' + p.lon + '#map=14/'+ p.lat + '/' + p.lon
-            });
-            var $posCx = $('<input type="checkbox">').addClass('position').change(function () {
-                if ($(this).is(':checked')) {
-                    $posLink.removeClass('striked');
-                } else {
-                    $posLink.addClass('striked');
-                }
-            });
-            if (img.metadata.showGPS) {
-                $posCx.prop('checked', true);
+            p = img.metadata.position;
+        }
+        var $posImg = $('<img />', {
+            'class': 'button other',
+            'src': 'pos.png',
+            'title': _('Show position on a map')
+        }).tipsy();
+        var $posLink = $('<a />', {
+            'class': 'other position',
+            'target': '_blank'
+        });
+        $posLink.append('OpenStreetMap');
+        var $posCx = $('<input type="checkbox">').addClass('position cx').change(function () {
+            if ($(this).is(':checked')) {
+                $posLink.removeClass('striked');
             } else {
                 $posLink.addClass('striked');
             }
-            $posImg.appendTo($posLink);
-            $posLink.append(p.lat + ',' + p.lon);
-            $position.append($posCx, $posLink);
+        });
+        if (img.metadata.showGPS) {
+            $posCx.prop('checked', true);
+        } else {
+            $posLink.addClass('striked');
         }
+        $posImg.appendTo($posLink);
+        var $posInput = $('<input type="text">').addClass('position text').change(function () {
+            var p = $posInput.val();
+            var t = p.split(',');
+            if (t.length == 2) {
+                var lat = parseFloat(t[0]);
+                var lon = parseFloat(t[1]);
+                $posLink.attr('href', 'http://www.openstreetmap.org/?mlat=' +
+                             lat + '&mlon=' + lon + '#map=14/'+ lat + '/' + lon);
+                $posCx.prop('checked', true);
+                $posLink.removeClass('striked');
+            } else {
+                $posCx.prop('checked', false);
+                $posLink.addClass('striked');
+            }
+        });
+        if (p) {
+            $posInput.val(p.lat + ", " + p.lon);
+            $posLink.attr('href', 'http://www.openstreetmap.org/?mlat=' +
+                          p.lat + '&mlon=' + p.lon + '#map=14/'+ p.lat + '/' + p.lon);
+        };
+        $position.append($posCx, $posLink, $posInput);
 
 
         var $legend = $('<div />', {
@@ -209,9 +228,21 @@ var regenCfg = function () {
             delete img.metadata.dateTimeStr;
         }
 
-        $cx = $child.find('input.position');
+        $cx = $child.find('input.position.cx');
         if ($cx.is(':checked')) {
             img.metadata.showGPS = true;
+            img.metadata.position = {};
+            var $posInput = $child.find('input.position.text');
+            var p = $posInput.val();
+            var t = p.split(',');
+            if (t.length == 2) {
+                img.metadata.position.lat = parseFloat(t[0]);
+                img.metadata.position.lon = parseFloat(t[1]);
+            } else {
+                $posCx.prop('checked', false);
+                $posLink.addClass('striked');
+            }
+
         } else {
             img.metadata.showGPS = false;
             delete img.metadata.dateTimeStr;
