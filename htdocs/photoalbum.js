@@ -243,7 +243,7 @@ var setupDiaporama = function (order) {
     resizeFn = function() {
         var newHeigth = $(window).height() -
             Math.max($bottom.height(), $legend.height()) - 15;
-        $img.height(newHeigth);
+        $('#main').height(newHeigth);
         $prev.height(newHeigth);
         $next.height(newHeigth);
     };
@@ -273,7 +273,11 @@ var setupDiaporama = function (order) {
 
         $diaporama.detach();
 
-        $img.prop('src', 'large/' + img.md5 + '.jpg');
+        $img.remove();
+        $img = $('<img />', {
+            src: 'large/' + img.md5 + '.jpg',
+            id: 'main'
+        }).appendTo($fullLink);
         $fullLink.prop('href', 'full/' + img.md5 + '.jpg');
 
         $legend.empty();
