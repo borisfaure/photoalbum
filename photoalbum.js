@@ -12,6 +12,9 @@ var mime = require('mime');
 var http = require('http');
 var url = require('url');
 
+//var throttle = require('throttle');
+var throttle = false;
+
 
 var DEFAULT_HTTP_PORT = 8080;
 var NB_WORKERS = 10;
@@ -782,6 +785,7 @@ var server = function (cfg, cfgPath) {
                 httpSimple(404, response);
                 return;
             }
+            console.log("serving " + filePath);
 
             var type = mime.lookup(filePath);
             response.writeHead(200, {
@@ -789,7 +793,12 @@ var server = function (cfg, cfgPath) {
                 'Content-Length': stat.size
             });
             var readStream = fs.createReadStream(filePath);
-            readStream.pipe(response);
+            if (throttle && filePath.indexOf('large') !== -1 && filePath.indexOf('.jpg') == filePath.length - 4) {
+                var lim = new throttle(3000);
+                readStream.pipe(lim).pipe(response);
+            } else {
+                readStream.pipe(response);
+            }
         });
     };
 
