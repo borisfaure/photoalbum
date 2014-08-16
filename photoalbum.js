@@ -18,7 +18,7 @@ var throttle = false;
 
 var DEFAULT_HTTP_PORT = 8080;
 var NB_WORKERS = 10;
-var IMAGES_PER_JSON = 50;
+var IMAGES_PER_JSON = 75;
 
 var cfgPath;
 
