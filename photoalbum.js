@@ -508,14 +508,7 @@ var doAll = function (cfg, genJSON, onDone) {
         };
 
         var large = function () {
-            im.identify(img.path, function(err, features) {
-                if (err) {
-                    throw err;
-                }
-
-                img.width = features.width;
-                img.height = features.height;
-
+            var action = function () {
                 var o = {
                     srcPath: img.path,
                     dstPath: path.join(cfg.out, 'large', img.md5 + '.jpg'),
@@ -546,7 +539,22 @@ var doAll = function (cfg, genJSON, onDone) {
                         });
                     }
                 });
-            });
+            };
+            if (img.width && img.height) {
+                action();
+            } else {
+                im.identify(img.path, function(err, features) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    img.width = features.width;
+                    img.height = features.height;
+
+                    action();
+                });
+            }
+
         };
 
         genOneThumbnail(cfg, pos, img, images, large);
