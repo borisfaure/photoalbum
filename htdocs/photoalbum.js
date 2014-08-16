@@ -203,6 +203,8 @@ var setupDiaporama = function (order) {
             var p = img.md.pos;
             var $posImg = $('<img />', {
                 'class': 'button other',
+                'width': 32,
+                'height': 32,
                 'src': 'pos.png',
                 'title': _('Show position on a map')
             }).tipsy({gravity: 'w'});
@@ -219,6 +221,8 @@ var setupDiaporama = function (order) {
         if (img.md && img.md.dateStr) {
             $('<img />', {
                 'class': 'other',
+                'width': 32,
+                'height': 32,
                 'src': 'time.png'
             }).appendTo($legend);
             $('<label />').text(img.md.dateStr).appendTo($legend);
@@ -241,9 +245,10 @@ var setupDiaporama = function (order) {
     $('body').append($diaporama);
 
     resizeFn = function() {
-        var newHeigth = $(window).height() -
-            Math.max($bottom.height(), $legend.height()) - 15;
-        $('#main').height(newHeigth);
+        var legendHeight = $legend.height();
+        var windowHeight = $(window).height();
+        var newHeigth = windowHeight - legendHeight - 15;
+        $img.height(newHeigth);
         $prev.height(newHeigth);
         $next.height(newHeigth);
     };

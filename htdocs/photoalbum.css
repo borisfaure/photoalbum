@@ -105,7 +105,7 @@ a:link, a:visited, a:hover, a:active {
     right: 0px;
 }
 
-#diaporama #legend {
+#diaporama #legend p {
     margin: 5px 0px 0px 0px;
 }
 #diaporama #legend div.legend {
