@@ -277,6 +277,8 @@ var genOneThumbnail = function (cfg, pos, img, images, onDone) {
                         l: genLegend(img.legend),
                         md: genMetadata(img),
                         md5: img.md5,
+                        l_w: img.l_w,
+                        l_h: img.l_h,
                         th_w: img.th_w,
                         th_h: img.th_h
                     };
@@ -292,10 +294,12 @@ var genOneThumbnail = function (cfg, pos, img, images, onDone) {
                     l: genLegend(img.legend),
                     md: genMetadata(img),
                     md5: img.md5,
+                    l_w: img.l_w,
+                    l_h: img.l_h,
                     th_w: img.th_w,
                     th_h: img.th_h
                 };
-                images.push(o);
+                images[pos] = o;
                 onDone();
             } else {
                 resize();
@@ -537,8 +541,18 @@ var doAll = function (cfg, genJSON, onDone) {
                             if (err) {
                                 throw err;
                             }
+                            im.identify(o.dstPath, function(err, features) {
+                                if (err) {
+                                    throw err;
+                                }
 
-                            full();
+                                img.l_w = features.width;
+                                img.l_h = features.height;
+                                images[pos].l_w = img.l_w;
+                                images[pos].l_h = img.l_h;
+
+                                full();
+                            });
                         });
                     }
                 });

@@ -245,12 +245,24 @@ var setupDiaporama = function (order) {
     $('body').append($diaporama);
 
     resizeFn = function() {
+        var img = images[index];
         var legendHeight = $legend.height();
         var windowHeight = $(window).height();
-        var newHeigth = windowHeight - legendHeight - 15;
-        $img.height(newHeigth);
-        $prev.height(newHeigth);
-        $next.height(newHeigth);
+        var windowWidth= $(window).width();
+        var newHeight = windowHeight - legendHeight - 15;
+        var factor = img.l_h / newHeight;
+        var imgWidth = img.l_w / factor;
+        if (imgWidth > windowWidth) {
+            if (imgWidth * 0.8 <= windowWidth) {
+                factor = img.l_w / (windowWidth - 10);
+                newHeight = img.l_h / factor;
+            } else {
+                newHeight -= 12; /* take the scrollar into account */
+            }
+        }
+        $img.height(newHeight);
+        $prev.height(newHeight);
+        $next.height(newHeight);
     };
 
     checkOrder = function () {
