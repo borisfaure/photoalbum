@@ -321,12 +321,12 @@ var genThumbs = function (cfg, onEnd) {
 
         var finish = function () {
             done++;
-            util.print('\rgenerating thumbnails: ' + done + '/' + cfg.images.length);
+            console.log('\rgenerating thumbnails: ' + done + '/' + cfg.images.length);
 
             if (pos + NB_WORKERS < cfg.images.length) {
                 dealImage(cfg, pos + NB_WORKERS, onDone);
             } else if (done == cfg.images.length) {
-                util.print('\n');
+                console.log('\n');
                 onDone(images);
             }
         };
@@ -371,11 +371,11 @@ var copyFull = function (cfg, onDone) {
         }
         var finish = function (pos) {
             done++;
-            util.print('\rcopying full images: ' + done + '/' + cfg.images.length);
+            console.log('\rcopying full images: ' + done + '/' + cfg.images.length);
             if (pos + NB_WORKERS < cfg.images.length) {
                 worker(pos + NB_WORKERS);
             } else if (done == cfg.images.length) {
-                util.print('\n');
+                console.log('\n');
                 onDone();
             }
         };
@@ -499,11 +499,11 @@ var doAll = function (cfg, genJSON, onDone) {
 
         var finish = function () {
             done++;
-            util.print('\rworking on images: ' + done + '/' + cfg.images.length);
+            console.log('\rworking on images: ' + done + '/' + cfg.images.length);
             if (pos + NB_WORKERS < cfg.images.length) {
                 dealImage(cfg, pos + NB_WORKERS, onDone);
             } else if (done == cfg.images.length) {
-                util.print('\n');
+                console.log('\n');
                 onDone();
             }
         };
@@ -610,12 +610,12 @@ var addImages = function (cfg, cfgPath, images, inPath) {
 
         var onDone = function () {
             done++;
-            util.print('\ranalysing files: ' + done + '/' + images.length);
+            console.log('\ranalysing files: ' + done + '/' + images.length);
 
             if (f + NB_WORKERS < images.length) {
                 checkImage(f + NB_WORKERS);
             } else if (done == images.length) {
-                util.print('\nphoto album now has ' + cfg.images.length + ' images\n');
+                console.log('\nphoto album now has ' + cfg.images.length + ' images\n');
                 if (inPath) {
                     cfg.images.sort(function(imgA, imgB) {
                         if (imgA.path < imgB.path) {
@@ -687,7 +687,7 @@ var genConfig = function(inPath, cfgPath, outDirectory) {
         if (err) {
             throw err;
         }
-        util.print('Checking ' + dirs.length + ' files in ' + inPath + '\n');
+        console.log('Checking ' + dirs.length + ' files in ' + inPath + '\n');
 
         addImages(json, cfgPath, dirs, inPath);
     });
@@ -698,8 +698,8 @@ var genConfig = function(inPath, cfgPath, outDirectory) {
         }
     });
 
-    util.print("Output dir is set to " + outDirectory + "\n");
-    util.print("you can now run '" + process.argv[1] + " editor " +
+    console.log("Output dir is set to " + outDirectory + "\n");
+    console.log("you can now run '" + process.argv[1] + " editor " +
                cfgPath + "' to generate an editor\n");
 
 };
@@ -876,7 +876,7 @@ var server = function (cfg, cfgPath) {
 /* {{{ main */
 
 var usage = function() {
-    util.print("usage: photoalbum command\n\n"
+    console.log("usage: photoalbum command\n\n"
     + "command is one of the following:\n"
     + "config input_directory output_config_file [output_directory]\n"
     + "    generate a configuration files about files in input_directory\n"
@@ -914,7 +914,7 @@ switch (args[0]) {
             setup(cfg, true);
             copyFull(cfg, function() {
                 saveCfg(args[1], cfg);
-                util.print("you can now run '" + process.argv[1] + " server " +
+                console.log("you can now run '" + process.argv[1] + " server " +
                            args[1] + "' to start a server to edit the album\n");
             });
         };
