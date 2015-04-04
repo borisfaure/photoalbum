@@ -485,9 +485,9 @@ var genMetadata = function (img) {
 };
 
 /* }}} */
-/* {{{ doAll */
+/* {{{ doRender */
 
-var doAll = function (cfg, genJSON, onDone) {
+var doRender = function (cfg, genJSON, onDone) {
     var i;
     var done = 0;
     var images = [];
@@ -941,10 +941,10 @@ switch (args[0]) {
         cleanup(cfg);
     });
     break;
-  case "all":
+  case "render":
     getJSONFromPath(args[1], function (cfg) {
         setup(cfg, false);
-        doAll(cfg, true, function () {
+        doRender(cfg, true, function () {
             saveCfg(args[1], cfg);
         });
     });
