@@ -11,6 +11,7 @@ var crypto = require('crypto');
 var mime = require('mime');
 var http = require('http');
 var url = require('url');
+var Q = require('q');
 
 //var throttle = require('throttle');
 var throttle = false;
@@ -594,6 +595,8 @@ var doAll = function (cfg, genJSON, onDone) {
 
 var addImages = function (cfg, cfgPath, images, inPath) {
 
+    var deferred = Q.defer();
+
     var md5Dict = {};
     var i;
     for (i in cfg.images) {
@@ -628,6 +631,7 @@ var addImages = function (cfg, cfgPath, images, inPath) {
                     });
                 }
                 saveCfg(cfgPath, cfg);
+                deferred.resolve();
             }
         };
 
@@ -671,6 +675,7 @@ var addImages = function (cfg, cfgPath, images, inPath) {
     for (i = 0; i < NB_WORKERS; i++) {
         checkImage(i);
     }
+    return deferred.promise;
 };
 /* }}} */
 /* {{{ genConfig */
@@ -689,19 +694,18 @@ var genConfig = function(inPath, cfgPath, outDirectory) {
         }
         console.log('Checking ' + dirs.length + ' files in ' + inPath + '\n');
 
-        addImages(json, cfgPath, dirs, inPath);
+        addImages(json, cfgPath, dirs, inPath)
+            .then(function() {
+                fs.stat(outDirectory, function (err) {
+                    if (err) {
+                        fs.mkdir(outDirectory);
+                    }
+                    console.log("Output dir is set to " + outDirectory + "\n");
+                    console.log("you can now run '" + process.argv[1] + " editor " +
+                                cfgPath + "' to generate an editor\n");
+                });
+            });
     });
-
-    fs.stat(outDirectory, function (err) {
-        if (err) {
-            fs.mkdir(outDirectory);
-        }
-    });
-
-    console.log("Output dir is set to " + outDirectory + "\n");
-    console.log("you can now run '" + process.argv[1] + " editor " +
-               cfgPath + "' to generate an editor\n");
-
 };
 
 /* }}} */
