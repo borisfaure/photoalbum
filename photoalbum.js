@@ -893,7 +893,7 @@ var usage = function() {
     + "    add the given images to the configuration file\n"
     + "cleanup config_file\n"
     + "    remove unused files in the output directory. Use with caution.\n"
-    + "all config_file\n"
+    + "render config_file\n"
     + "    execute setup/genJSONs/genImages\n");
     process.exit(1);
 };
