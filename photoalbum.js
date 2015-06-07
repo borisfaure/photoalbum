@@ -696,11 +696,11 @@ var genConfig = function(inPath, cfgPath, outDirectory) {
 
         addImages(json, cfgPath, dirs, inPath)
             .then(function() {
-                fs.stat(outDirectory, function (err) {
+                fs.stat(json.out, function (err, stats) {
+                    console.log("Output dir is set to " + json.out + "\n");
                     if (err) {
-                        fs.mkdir(outDirectory);
+                        fs.mkdir(json.out);
                     }
-                    console.log("Output dir is set to " + outDirectory + "\n");
                     console.log("you can now run '" + process.argv[1] + " editor " +
                                 cfgPath + "' to generate an editor\n");
                 });
