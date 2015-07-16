@@ -37,9 +37,9 @@ The icons were generated from the ones at http://raphaeljs.com/icons/ .
 ./photoalbum.js server config.json
 ```
 6. Open your brower at `http://localhost:8080/editor.html` and edit your pictures.
-7. Generate all the files:
+7. Render all the files:
 ```
-./photoalbum.js all config.json
+./photoalbum.js render config.json
 ```
 8. Optional: `gzip` the output files: just type `make` in the ouput directory.
 
