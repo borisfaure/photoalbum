@@ -150,6 +150,7 @@ var genHtmlFile = function (cfg, source, onDone) {
             data = data.replace(/%%OUT_DIR%%/g, _('Output directory of the album: '));
             data = data.replace(/%%SELECT_LANG%%/g, _('Language of the album: '));
             data = data.replace(/%%SELECT_TIMEZONE%%/g, _('Select the timezone the images where taken in: '));
+            data = data.replace(/%%ADD_PAGE%%/g, _('Add page'));
             onDone(data);
         });
     });
@@ -245,10 +246,15 @@ var genJSON = function (cfg, images, onDone) {
 /* {{{ genThumbs */
 
 var genOneThumbnail = function (cfg, pos, img, images, onDone) {
+    if (img.type === 'page') {
+        images[pos] = img;
+        onDone();
+        return;
+    }
     fs.stat(img.path, function (err, stat) {
         if (err) {
             console.error(err);
-            finish();
+            onDone();
             return;
         }
 
@@ -377,11 +383,15 @@ var copyFull = function (cfg, onDone) {
                 onDone();
             }
         };
-        copyIfNotExits(img.path,
-                       path.join(cfg.out, 'full', img.md5 + '.jpg'),
-                       function() {
-                           finish(pos);
-                       });
+        if (img.type === 'page') {
+            finish(pos);
+        } else {
+            copyIfNotExits(img.path,
+                           path.join(cfg.out, 'full', img.md5 + '.jpg'),
+                           function() {
+                               finish(pos);
+                           });
+        }
     };
 
     for (i = 0; i < NB_WORKERS; i++) {

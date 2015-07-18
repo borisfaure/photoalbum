@@ -1,5 +1,6 @@
 {
     "fr" : {
+        "Add Page": "Ajouter une page",
         "Show Thumbnails": "Afficher les miniatures",
         "Play diaporama": "Jouer le diaporama",
         "Pause diaporama": "Mettre en pause le diaporama",
@@ -8,6 +9,8 @@
         "Cancel": "Annuler",
         "Remove this image from the photo album":
             "Enlever cette image de l'album",
+        "Remove this page from the photo album":
+            "Enlever cette page de l'album",
         "Are you sure to remove this image from the album?":
             "Êtes-vous sûr d'enlever cette image de l'album?",
         "Save the configuration": "Sauvegarder la configuration",
@@ -15,6 +18,7 @@
         "Display as list": "Afficher sous forme de liste",
         "Generate config.json": "Génerer la configuration",
         "Title of the album: ": "Titre de l'album: ",
+        "Title of the page: ": "Titre de la page: ",
         "Language of the album: ": "Langue de l'album: ",
         "Output directory of the album: ": "Répertoire où mettre l'album: ",
         "Select the timezone the images where taken in: ": "Sélectionner le fuseau horaire où ont été prises les photos: ",
