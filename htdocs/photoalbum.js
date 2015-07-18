@@ -1,14 +1,12 @@
 /*jshint browser: true, jquery: true, globalstrict: true*/
-/*global IMAGES_PER_JSON, translations, markdown */
+/*global images, translations, markdown */
 'use strict';
 
 var totalImages = 0;
-var totalImagesDisplayed = 0;
 var isDisplayingThumbnails = true;
 
 var title;
 var intervalId = null;
-var images = [];
 var img;
 
 var changeHistory = function (order) {
@@ -39,10 +37,9 @@ var backToThumbs = function (md5) {
     }
     var $diaporama = $('#diaporama');
     $diaporama.empty();
-    $('#downloadMore').hide();
-    $('#loading').hide();
     changeHistory();
     isDisplayingThumbnails = true;
+    /* TODO: boris */
     if (totalImages != totalImagesDisplayed) {
         $('#thumbs').empty();
         var jsonBoundary = 0;
@@ -62,7 +59,7 @@ var backToThumbs = function (md5) {
             } else {
                 if (index > jsonBoundary) {
                     jsonBoundary += IMAGES_PER_JSON;
-                    downloadMore(order, updateThumbs);
+                    //downloadMore(order, updateThumbs);
                 }
                 $img = $('<img />');
             }
@@ -107,6 +104,7 @@ var setupDiaporama = function (order) {
     var $diaporama = $('#diaporama');
 
     img = images[index];
+    /* TODO: boris */
     if (!img) {
         var i;
         downloadMore(order, function (newJson) {
@@ -280,6 +278,7 @@ var setupDiaporama = function (order) {
 
     var updateImage = function () {
         img = images[index];
+        /* TODO: boris */
         if (!img) {
             downloadMore(order, function (newJson) {
                 setupDiaporama(order);
@@ -339,7 +338,8 @@ var updateThumbs = function (newJson) {
     var $children = $thumbs.children();
     var ul = [];
     var i;
-    var m = Math.min(images.length, (newJson + 1) * IMAGES_PER_JSON);
+    var m = images.length;
+    console.log(m);
     for (i = 0; i < m; i++) {
         (function(){
             var img = images[i];
@@ -385,59 +385,20 @@ var updateThumbs = function (newJson) {
     $('#thumbs').append(ul);
 };
 
-var downloadMore = function (order, onDone) {
-    if (totalImages > 0 && totalImages == totalImagesDisplayed) {
-        $('#loading').hide();
-        $('#downloadMore').hide();
-        return;
-    }
-    var index = order - 1;
-    var jsonNb = Math.floor(index / IMAGES_PER_JSON);
-    var file = 'json/images_' + jsonNb + '.json';
-    $.getJSON(file, function (data) {
-        totalImages = data.total;
-
-        var i;
-        for (i = 0; i < data.images.length; i++) {
-            var idx = i + IMAGES_PER_JSON * jsonNb;
-            if (!images[idx]) {
-                images[idx] = data.images[i];
-                totalImagesDisplayed++;
-            }
-        }
-
-        if (onDone) {
-            onDone(jsonNb);
-        }
-    });
-
-};
-
-
 $(document).ready(function() {
-    var downloading = false;
-
     title = $('title').text();
-    $('#downloadMore').click(downloadMore);
 
-    var onDoneThumbs = function (jsonNb) {
-        updateThumbs(jsonNb);
-
-        $('#loading').hide();
-        if (totalImagesDisplayed < totalImages) {
-            $('#downloadMore').show();
-        }
-    };
+    $("#loading").remove();
 
     if (window.location.hash) {
         var hash = parseInt(window.location.hash.substr(1), 10);
         if (isNaN(hash) || hash <= 0) {
-            downloadMore(1, onDoneThumbs);
+            updateThumbs();
         } else {
             setupDiaporama(hash);
         }
     } else {
-        downloadMore(1, onDoneThumbs);
+        updateThumbs();
     }
 
 
@@ -447,7 +408,7 @@ $(document).ready(function() {
             if (state.order > 0) {
                 setupDiaporama(state.order);
             } else {
-                downloadMore(1, updateThumbs);
+                updateThumbs();
                 if (img) {
                     backToThumbs(img.md5);
                 } else {
@@ -457,18 +418,13 @@ $(document).ready(function() {
         }
     });
 
-    $(window).scroll(function (ev) {
-        if (downloading || !isDisplayingThumbnails) {
+    var onScroll = function (ev) {
+        if (!isDisplayingThumbnails) {
             return;
         }
-        var scrollTop = $(window).scrollTop();
-        var height = $(document).height();
-        if (scrollTop * 3 > 2 * height) {
-            $('#loading').show();
-            $('#downloadMore').hide();
+    };
+    $(window).scroll(onScroll);
+    onScroll();
 
-            downloadMore(images.length + 1, onDoneThumbs);
-        }
-    });
 
 });

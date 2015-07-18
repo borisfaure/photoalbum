@@ -19,7 +19,6 @@ var throttle = false;
 
 var DEFAULT_HTTP_PORT = 8080;
 var NB_WORKERS = 10;
-var IMAGES_PER_JSON = 75;
 
 var cfgPath;
 
@@ -61,7 +60,6 @@ var bothFiles = [
 ];
 
 var directories = [
-    'json',
     'large',
     'thumb',
     'full'
@@ -132,7 +130,6 @@ var genHtmlFile = function (cfg, source, onDone) {
             throw err;
         }
         data = data.replace(/%%TITLE%%/g, cfg.title || '');
-        data = data.replace(/%%IMAGES_PER_JSON%%/g, IMAGES_PER_JSON);
         data = data.replace(/%%LANG%%/g, cfg.lang || 'en');
         getJSONFromPath('translations.json', function (translations) {
             data = data.replace(/%%TRANSLATIONS%%/g,
@@ -147,7 +144,6 @@ var genHtmlFile = function (cfg, source, onDone) {
             var _ = function (str) {
                 return translations[str] || str;
             };
-            data = data.replace(/%%DOWNLOAD_MORE%%/g, _('Download more images'));
             data = data.replace(/%%GENERATE_CFG%%/g, _('Generate config.json'));
             data = data.replace(/%%EDIT_TITLE%%/g, _('Title of the album: '));
             data = data.replace(/%%OUT_DIR%%/g, _('Output directory of the album: '));
@@ -216,9 +212,9 @@ var setup = function (cfg, isEditor) {
 };
 
 /* }}} */
-/* {{{ genJSONs */
+/* {{{ genJSON */
 
-var genJSONs = function (cfg, images, onDone) {
+var genJSON = function (cfg, images, onDone) {
     var l = [];
     var i;
     var errFn = function (err) {
@@ -226,18 +222,18 @@ var genJSONs = function (cfg, images, onDone) {
             throw (err);
         }
     };
-    for (i = 0; i < Math.ceil(images.length / IMAGES_PER_JSON); i++) {
+    for (i = 0; i < images.length; i++) {
         var o = {
-            total: images.length,
             images: []
         };
         var j;
-        var m = Math.min(IMAGES_PER_JSON, o.total - i * IMAGES_PER_JSON);
-        for (j = 0; j < m; j++) {
-            o.images.push(images[i * IMAGES_PER_JSON + j]);
+        for (j = 0; j < images.length; j++) {
+            o.images.push(images[j]);
         }
-        var jsonPath = path.join(cfg.out, 'json', 'images_' + i + '.json');
-        fs.writeFile(jsonPath, JSON.stringify(o, null, 4), errFn);
+        var jsonPath = path.join(cfg.out, 'images.json');
+        fs.writeFile(jsonPath, 'var images = ' +
+                     JSON.stringify(o.images, null, 4) + ';',
+                     errFn);
     }
     if (onDone) {
         onDone();
@@ -487,7 +483,7 @@ var genMetadata = function (img) {
 /* }}} */
 /* {{{ doRender */
 
-var doRender = function (cfg, genJSON, onDone) {
+var doRender = function (cfg, doGenJSON, onDone) {
     var i;
     var done = 0;
     var images = [];
@@ -580,8 +576,8 @@ var doRender = function (cfg, genJSON, onDone) {
 
 
     var itsOver = function () {
-        if (genJSON) {
-            genJSONs(cfg, images);
+        if (doGenJSON) {
+            genJSON(cfg, images);
         }
         onDone();
     };
@@ -894,7 +890,7 @@ var usage = function() {
     + "cleanup config_file\n"
     + "    remove unused files in the output directory. Use with caution.\n"
     + "render config_file\n"
-    + "    execute setup/genJSONs/genImages\n");
+    + "    render the photoalbum\n");
     process.exit(1);
 };
 
