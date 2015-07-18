@@ -339,7 +339,6 @@ var updateThumbs = function (newJson) {
     var ul = [];
     var i;
     var m = images.length;
-    console.log(m);
     for (i = 0; i < m; i++) {
         (function(){
             var img = images[i];
@@ -351,7 +350,7 @@ var updateThumbs = function (newJson) {
                 if ($child.length) {
                     $img = $($child.children()[0]);
                     $img.prop('id', img.md5);
-                    $img.prop('src', 'thumb/' + img.md5 + '.jpg');
+                    $img.prop('src', '');
                     $img.prop('width', img.th_w);
                     $img.prop('height', img.th_h);
                     $img.prop('alt', img.l);
@@ -359,7 +358,7 @@ var updateThumbs = function (newJson) {
                     $li = $('<li />');
                     $img = $('<img />', {
                         id: img.md5,
-                        src: 'thumb/' + img.md5 + '.jpg',
+                        src: '',
                         width: img.th_w,
                         height: img.th_h,
                         alt: img.l
@@ -422,6 +421,10 @@ $(document).ready(function() {
         if (!isDisplayingThumbnails) {
             return;
         }
+        $('#thumbs li img:in-viewport').each(function() {
+            var $t = $(this);
+            $t.prop('src', 'thumb/' + $t.prop('id') + '.jpg');
+        });
     };
     $(window).scroll(onScroll);
     onScroll();

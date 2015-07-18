@@ -44,6 +44,7 @@ var indexFiles = [
     'play.png',
     'pause.png',
     'loading.gif',
+    'jquery.viewport.js',
     'photoalbum.js',
     'brickwall.png'
 ];
