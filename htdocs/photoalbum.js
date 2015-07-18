@@ -39,45 +39,18 @@ var backToThumbs = function (md5) {
     $diaporama.empty();
     changeHistory();
     isDisplayingThumbnails = true;
-    /* TODO: boris */
-    if (totalImages != totalImagesDisplayed) {
-        $('#thumbs').empty();
-        var jsonBoundary = 0;
-        var ul = [];
-        $.each(images, function(index, img) {
-            var order = index + 1;
-            var $li = $('<li />');
-            var $img;
-            if (img) {
-                $img = $('<img />', {
-                    id: img.md5,
-                    src: 'thumb/' + img.md5 + '.jpg',
-                    width: img.th_w,
-                    height: img.th_h,
-                    alt: img.l
-                });
-            } else {
-                if (index > jsonBoundary) {
-                    jsonBoundary += IMAGES_PER_JSON;
-                    //downloadMore(order, updateThumbs);
-                }
-                $img = $('<img />');
-            }
-            $img.click(function() {
-                setupDiaporama(order);
-            });
-            $img.appendTo($li);
-
-            ul.push($li);
-        });
-        $('#thumbs').append(ul);
-    }
     $('.thumb').show();
+    updateThumbs();
     if (md5) {
         var offset = $('#'+md5).offset();
         $('body,html').animate({
             scrollTop: offset.top
         }, 500);
+    } else {
+        $('#thumbs li img:in-viewport').each(function() {
+            var $t = $(this);
+            $t.prop('src', 'thumb/' + $t.prop('id') + '.jpg');
+        });
     }
 };
 
@@ -104,19 +77,6 @@ var setupDiaporama = function (order) {
     var $diaporama = $('#diaporama');
 
     img = images[index];
-    /* TODO: boris */
-    if (!img) {
-        var i;
-        downloadMore(order, function (newJson) {
-            setupDiaporama(order);
-            updateThumbs(newJson);
-        });
-        /* Download missing */
-        for (i = 0; i < Math.floor(order / IMAGES_PER_JSON); i++) {
-            downloadMore(i * IMAGES_PER_JSON + 1, updateThumbs);
-        }
-        return;
-    }
 
     $diaporama.detach();
     $diaporama.empty();
@@ -278,14 +238,6 @@ var setupDiaporama = function (order) {
 
     var updateImage = function () {
         img = images[index];
-        /* TODO: boris */
-        if (!img) {
-            downloadMore(order, function (newJson) {
-                setupDiaporama(order);
-                updateThumbs(newJson);
-            });
-            return;
-        }
 
         $diaporama.detach();
 
@@ -339,6 +291,8 @@ var updateThumbs = function (newJson) {
     var ul = [];
     var i;
     var m = images.length;
+    if ($children.length == m)
+        return;
     for (i = 0; i < m; i++) {
         (function(){
             var img = images[i];
@@ -407,7 +361,6 @@ $(document).ready(function() {
             if (state.order > 0) {
                 setupDiaporama(state.order);
             } else {
-                updateThumbs();
                 if (img) {
                     backToThumbs(img.md5);
                 } else {
