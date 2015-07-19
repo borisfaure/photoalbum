@@ -343,8 +343,7 @@ var regenCfg = function () {
                     img.metadata.position.lat = parseFloat(t[0]);
                     img.metadata.position.lon = parseFloat(t[1]);
                 } else {
-                    $posCx.prop('checked', false);
-                    $posLink.addClass('striked');
+                    $cx.prop('checked', false);
                 }
 
             } else {
