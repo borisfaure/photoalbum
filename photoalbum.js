@@ -516,6 +516,12 @@ var doRender = function (cfg, doGenJSON, onDone) {
             }
         };
 
+        if (img.type === 'page') {
+            images[pos] = img;
+            finish();
+            return;
+        }
+
         var full = function () {
             var dest = path.join(cfg.out, 'full',  img.md5 + '.jpg');
 

@@ -91,14 +91,6 @@ var setupDiaporama = function (order) {
 
 
     var $imgContainer = $('<div />');
-    var $fullLink = $('<a />', {
-        href: 'full/' + img.md5 + '.jpg'
-    }).appendTo($imgContainer);
-    var $img = $('<img />', {
-        src: 'large/' + img.md5 + '.jpg',
-        id: 'main'
-    }).appendTo($fullLink);
-
     var $next = $('<div />', {
         'class': 'nav',
         id: 'next'
@@ -195,33 +187,10 @@ var setupDiaporama = function (order) {
     var $legend = $('<div />', {
         id: 'legend'
     });
-    renderLegend(img);
+
     $bottom.append($toolbar, $legend);
 
     $diaporama.append($imgContainer, $prev, $next, $bottom);
-
-    $('body').append($diaporama);
-
-    resizeFn = function() {
-        var img = images[index];
-        var legendHeight = $legend.height();
-        var windowHeight = $(window).height();
-        var windowWidth= $(window).width();
-        var newHeight = windowHeight - legendHeight - 15;
-        var factor = img.l_h / newHeight;
-        var imgWidth = img.l_w / factor;
-        if (imgWidth > windowWidth) {
-            if (imgWidth * 0.8 <= windowWidth) {
-                factor = img.l_w / (windowWidth - 10);
-                newHeight = img.l_h / factor;
-            } else {
-                newHeight -= 12; /* take the scrollar into account */
-            }
-        }
-        $img.height(newHeight);
-        $prev.height(newHeight);
-        $next.height(newHeight);
-    };
 
     checkOrder = function () {
         if (order == 1) {
@@ -241,19 +210,60 @@ var setupDiaporama = function (order) {
 
         $diaporama.detach();
 
-        $img.remove();
-        $img = $('<img />', {
-            src: 'large/' + img.md5 + '.jpg',
-            id: 'main'
-        }).appendTo($fullLink);
-        $fullLink.prop('href', 'full/' + img.md5 + '.jpg');
+        $imgContainer.empty();
 
         $legend.empty();
-        renderLegend(img);
+        var resizeFn;
+
+        if (img.type === 'page') {
+            var page = img;
+            var $h1 = $('<h1 />', {
+                text: page.title
+            });
+            var $content = $('<div />');
+            $content.html(page.content);
+            $imgContainer.append($h1, $content);
+            resizeFn = function() {};
+        } else {
+            var $fullLink = $('<a />', {
+                href: 'full/' + img.md5 + '.jpg'
+            }).appendTo($imgContainer);
+            var $img = $('<img />', {
+                src: 'large/' + img.md5 + '.jpg',
+                id: 'main'
+            }).appendTo($fullLink);
+
+
+            resizeFn = function() {
+                var img = images[index];
+                var legendHeight = $legend.height();
+                var windowHeight = $(window).height();
+                var windowWidth= $(window).width();
+                var newHeight = windowHeight - legendHeight - 15;
+                var factor = img.l_h / newHeight;
+                var imgWidth = img.l_w / factor;
+                if (imgWidth > windowWidth) {
+                    if (imgWidth * 0.8 <= windowWidth) {
+                        factor = img.l_w / (windowWidth - 10);
+                        newHeight = img.l_h / factor;
+                    } else {
+                        newHeight -= 12; /* take the scrollar into account */
+                    }
+                }
+                $img.height(newHeight);
+                $prev.height(newHeight);
+                $next.height(newHeight);
+            };
+
+            renderLegend(img);
+        }
 
         checkOrder();
         $('body').append($diaporama);
-        resizeFn();
+        if (img.type !== 'page') {
+            $(window).resize(resizeFn);
+            resizeFn();
+        }
         changeHistory(order);
     };
 
@@ -278,12 +288,56 @@ var setupDiaporama = function (order) {
         nextFn();
     });
 
-    checkOrder();
-    $(window).resize(resizeFn);
-    resizeFn();
+    updateImage();
     changeHistory(order);
 };
 
+var renderThumbImg = function (img, $children, i) {
+    var $img;
+    var $li;
+    var $child = $($children[i]);
+    var order = i + 1;
+    /* TODO: when are we in that case?*/
+    if ($child.length) {
+        console.log("case weird");
+        $img = $($child.children()[0]);
+        $img.prop('id', img.md5);
+        $img.prop('src', '');
+        $img.prop('width', img.th_w);
+        $img.prop('height', img.th_h);
+        $img.prop('alt', img.l);
+    } else {
+        $li = $('<li />');
+        $img = $('<img />', {
+            id: img.md5,
+            src: '',
+            width: img.th_w,
+            height: img.th_h,
+            alt: img.l
+        }).click(function() {
+            setupDiaporama(order);
+        });
+        $img.appendTo($li);
+    }
+    return $li;
+};
+
+var renderThumbPage = function (page, $children, i) {
+    var $page;
+    var $li;
+    var $child = $($children[i]);
+    var order = i + 1;
+    $li = $('<li />');
+    $page = $('<span/>', {
+        'id': page.md5,
+        'class': "foo",
+        'text': page.title
+    }).click(function() {
+        setupDiaporama(order);
+    });
+    $page.appendTo($li);
+    return $li;
+};
 
 var updateThumbs = function (newJson) {
     var $thumbs = $('#thumbs');
@@ -296,42 +350,13 @@ var updateThumbs = function (newJson) {
     for (i = 0; i < m; i++) {
         (function(){
             var img = images[i];
-            var $img;
             var $li;
-            if (img) {
-                var $child = $($children[i]);
-                var order = i + 1;
-                if ($child.length) {
-                    $img = $($child.children()[0]);
-                    $img.prop('id', img.md5);
-                    $img.prop('src', '');
-                    $img.prop('width', img.th_w);
-                    $img.prop('height', img.th_h);
-                    $img.prop('alt', img.l);
-                } else {
-                    $li = $('<li />');
-                    $img = $('<img />', {
-                        id: img.md5,
-                        src: '',
-                        width: img.th_w,
-                        height: img.th_h,
-                        alt: img.l
-                    }).click(function() {
-                        setupDiaporama(order);
-                    });
-                    $img.appendTo($li);
-
-                    ul.push($li);
-                }
+            if (img.type === 'page') {
+                $li = renderThumbPage(img, $children, i);
             } else {
-                $li = $('<li />');
-                $img = $('<img />').click(function() {
-                    setupDiaporama(order);
-                });
-                $img.appendTo($li);
-
-                ul.push($li);
+                $li = renderThumbImg(img, $children, i);
             }
+            ul.push($li);
         })();
     }
 

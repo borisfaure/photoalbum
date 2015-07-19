@@ -43,6 +43,13 @@ div {
     border: solid 5px;
 }
 
+#thumbs li span {
+    vertical-align: middle;
+    cursor: pointer;
+    border-color: #fff;
+    border: solid 5px;
+}
+
 #diaporama {
     width: 100%;
     height: 100%;
