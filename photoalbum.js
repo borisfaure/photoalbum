@@ -619,6 +619,7 @@ var addImages = function (cfg, cfgPath, images, inPath) {
         var img = cfg.images[i];
         md5Dict[img.md5] = true;
     }
+    var original_length = cfg.images.length;
 
     var done = 0;
     var checkImage;
@@ -680,7 +681,7 @@ var addImages = function (cfg, cfgPath, images, inPath) {
                             metadata: metadata,
                             mtime: stat.mtime.getTime()
                         };
-                        cfg.images[f] = o;
+                        cfg.images[f + original_length] = o;
                         md5Dict[hex] = true;
                     }
                     onDone();
