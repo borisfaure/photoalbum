@@ -2,6 +2,8 @@
 /*global langs, translations, cfg, markdown, moment */
 'use strict';
 
+var cfg = {};
+
 var _ = function (str) {
     return translations[str] || str;
 };
