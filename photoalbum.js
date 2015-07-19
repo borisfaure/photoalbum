@@ -60,7 +60,10 @@ var bothFiles = [
     'leaflet.css',
     'leaflet.js',
     'gpx.js',
-    'Makefile'
+    'Makefile',
+    'pin-icon-start.png',
+    'pin-icon-end.png',
+    'pin-shadow.png'
 ];
 
 var directories = [
