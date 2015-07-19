@@ -57,6 +57,9 @@ var bothFiles = [
     'thumbs.png',
     'pos.png',
     'time.png',
+    'leaflet.css',
+    'leaflet.js',
+    'gpx.js',
     'Makefile'
 ];
 
