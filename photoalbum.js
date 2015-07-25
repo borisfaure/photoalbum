@@ -813,14 +813,6 @@ var cleanup = function (cfg) {
 
         cleanupDir(allowedFiles);
     });
-
-    var jsonNb = Math.ceil(cfg.images.length / IMAGES_PER_JSON);
-    var i;
-    var allowedFiles = {};
-    for (i = 0; i < jsonNb; i++) {
-        allowedFiles['images_' + i + '.json'] = true;
-    }
-    cleanupDir(allowedFiles, 'json');
 };
 
 /* }}} */
