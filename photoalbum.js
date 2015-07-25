@@ -269,12 +269,13 @@ var genOneThumbnail = function (cfg, pos, img, images, onDone) {
             return;
         }
 
+        var thumbPath = path.join(cfg.out, 'thumb', img.md5 + '.jpg');
         var resize = function () {
             var o = {
                 width: 256,
                 srcPath: img.path,
                 strip: true,
-                dstPath: path.join(cfg.out, 'thumb', img.md5 + '.jpg')
+                dstPath: thumbPath
             };
             im.resize(o, function(err, stdout, stderr) {
                 if (err) {
@@ -305,6 +306,16 @@ var genOneThumbnail = function (cfg, pos, img, images, onDone) {
         fs.exists(path.join(cfg.out, 'thumb', img.md5 + '.jpg'),
                   function (exists) {
             if (exists) {
+                if (!img.th_w || !img.th_h) {
+                    im.identify(thumbPath, function(err, features) {
+                        if (err) {
+                            throw err;
+                        }
+
+                        img.th_w = features.width;
+                        img.th_h = features.height;
+                    });
+                }
                 var o = {
                     l: genLegend(img.legend),
                     md: genMetadata(img),
