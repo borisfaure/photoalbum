@@ -81,9 +81,16 @@ div {
     right: 0px;
     width: 15%;
 }
+
 a:link, a:visited, a:hover, a:active {
     border:none;
 }
+
+#content {
+    margin-right: 15%;
+    margin-left: 15%;
+}
+
 #diaporama div img#main {
     position: relative;
     margin: 0px auto;

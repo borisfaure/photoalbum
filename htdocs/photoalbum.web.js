@@ -220,10 +220,15 @@ var setupDiaporama = function (order) {
             var $h1 = $('<h1 />', {
                 text: page.title
             });
-            var $content = $('<div />');
+            var $content = $('<div />', {'id': 'content'});
             $content.html(page.content);
             $imgContainer.append($h1, $content);
-            resizeFn = function() {};
+            resizeFn = function() {
+                var windowHeight = $(window).height();
+                var newHeight = windowHeight - 15;
+                $prev.height(newHeight);
+                $next.height(newHeight);
+            };
         } else {
             var $fullLink = $('<a />', {
                 href: 'full/' + img.md5 + '.jpg'
@@ -260,10 +265,8 @@ var setupDiaporama = function (order) {
 
         checkOrder();
         $('body').append($diaporama);
-        if (img.type !== 'page') {
-            $(window).resize(resizeFn);
-            resizeFn();
-        }
+        $(window).resize(resizeFn);
+        resizeFn();
         changeHistory(order);
     };
 
@@ -366,6 +369,7 @@ $(document).ready(function() {
     title = $('title').text();
 
     $("#loading").remove();
+    totalImages = images.length;
 
     if (window.location.hash) {
         var hash = parseInt(window.location.hash.substr(1), 10);
