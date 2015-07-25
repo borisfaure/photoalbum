@@ -330,7 +330,6 @@ var renderThumbPage = function (page, $children, i) {
     $li = $('<li />');
     $page = $('<span/>', {
         'id': page.md5,
-        'class': "foo",
         'text': page.title
     }).click(function() {
         setupDiaporama(order);

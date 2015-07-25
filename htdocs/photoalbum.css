@@ -48,6 +48,7 @@ div {
     cursor: pointer;
     border-color: #fff;
     border: solid 5px;
+    padding: 10px;
 }
 
 #diaporama {
