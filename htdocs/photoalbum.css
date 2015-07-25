@@ -85,6 +85,12 @@ div {
 a:link, a:visited, a:hover, a:active {
     border:none;
 }
+a:link {
+    color: #268bd2;
+}
+a:visited {
+    color: #cb4b16;
+}
 
 #content {
     margin-right: 15%;
