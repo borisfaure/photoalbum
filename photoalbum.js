@@ -45,7 +45,7 @@ var indexFiles = [
     'pause.png',
     'loading.gif',
     'jquery.viewport.js',
-    'photoalbum.js',
+    'photoalbum.web.js',
     'brickwall.png'
 ];
 var bothFiles = [
