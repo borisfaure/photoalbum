@@ -367,7 +367,7 @@ $(document).ready(function() {
     var onCfgLoaded = function () {
         $('#title').val(cfg.title || '');
         $('#outDir').val(cfg.out || '');
-        var lang = $('html').prop('lang');
+        var lang = cfg.lang || $('html').prop('lang');
         var l = [];
         $.each(langs, function (i, lg) {
             var $o = $('<option />', {
