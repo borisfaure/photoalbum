@@ -302,7 +302,6 @@ var renderThumbImg = function (img, $children, i) {
     var order = i + 1;
     /* TODO: when are we in that case?*/
     if ($child.length) {
-        console.log("case weird");
         $img = $($child.children()[0]);
         $img.prop('id', img.md5);
         $img.prop('src', '');
@@ -394,6 +393,17 @@ $(document).ready(function() {
                 } else {
                     backToThumbs();
                 }
+            }
+        } else {
+            if (window.location.hash) {
+                var hash = parseInt(window.location.hash.substr(1), 10);
+                if (isNaN(hash) || hash <= 0) {
+                    backToThumbs();
+                } else {
+                    setupDiaporama(hash);
+                }
+            } else {
+                backToThumbs();
             }
         }
     });
