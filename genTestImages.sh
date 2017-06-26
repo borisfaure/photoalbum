@@ -6,6 +6,8 @@ then
     exit 1;
 fi
 
+mkdir -p in
+
 for I in `seq 1 $1`
 do
     convert -size 3072x2304 -gravity center label:$I in/IMG_`printf '%.06i' $I`.jpg
