@@ -243,9 +243,8 @@ var genJSON = function (cfg, images, onDone) {
         for (j = 0; j < images.length; j++) {
             o.images.push(images[j]);
         }
-        var jsonPath = path.join(cfg.out, 'images.js');
-        fs.writeFile(jsonPath, 'var images = ' +
-                     JSON.stringify(o.images, null, 4) + ';',
+        var jsonPath = path.join(cfg.out, 'images.json');
+        fs.writeFile(jsonPath, JSON.stringify(o.images, null, 4),
                      errFn);
     }
     if (onDone) {

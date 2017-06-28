@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="%%LANG%%">
+<html lang="%%LANG%%" ng-app="App">
   <head>
     <meta charset="utf-8">
     <title>%%TITLE%%</title>
@@ -10,23 +10,36 @@
     <script type="text/javascript">
       var translations = %%TRANSLATIONS%%;
     </script>
-  </head>
-  <body>
-    <h1 class="thumb">%%TITLE%%</h1>
-    <ul class="thumb" id="thumbs">
-    </ul>
-    <img class="thumb" id="loading" src="loading.gif" alt="loading…" >
-    <div id="diaporama">
-    </div>
-    <script type="text/javascript" src="images.js"></script>
+    <!--
     <script type="text/javascript" src="jquery.min.js"></script>
     <script type="text/javascript" src="jquery.viewport.js"></script>
     <script type="text/javascript" src="markdown.js"></script>
-    <script type="text/javascript" src="photoalbum.web.js"></script>
     <script type='text/javascript' src="tipsy.js"></script>
     <script type='text/javascript' src="d3.min.js"></script>
     <script type='text/javascript' src="leaflet.js"></script>
     <script type='text/javascript' src="gpx.js"></script>
     <script type='text/javascript' src="elevation.js"></script>
+    -->
+    <script type='text/javascript' src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script type="text/javascript" src="photoalbum.web.js"></script>
+  </head>
+  <body>
+    <div class="container-fluid" ng-controller="ThumbsCtrl">
+      <h1 class="thumb">%%TITLE%%</h1>
+      <ul class="thumb" id="thumbs">
+        <li ng-repeat="img in images">
+          <div ng-if="img.type!=='page'">
+            <img  id={{img.md5}} alt="{{img.l}}"
+              width="{{img.th_w}}" height="{{img.th_h}}"
+              src="thumb/{{img.md5}}.jpg" />
+          </div>
+          <div ng-if"img.type==='page'">
+            <span id={{img.md5}}>{{img.text}}</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div id="diaporama">
+    </div>
   </body>
 </html>
