@@ -10,6 +10,14 @@
     <script type="text/javascript">
       var translations = %%TRANSLATIONS%%;
     </script>
+  <script type="text/ng-template" id="/img_thumb.html">
+    <img id={{item.md5}} alt="{{item.l}}"
+                    width="{{item.th_w}}" height="{{item.th_h}}"
+                    src="thumb/{{item.md5}}.jpg" />
+  </script>
+  <script type="text/ng-template" id="/page_thumb.html">
+    <span id={{item.md5}}>{{item.title}}</span>
+  </script>
     <!--
     <script type="text/javascript" src="jquery.min.js"></script>
     <script type="text/javascript" src="jquery.viewport.js"></script>
@@ -27,15 +35,8 @@
     <div class="container-fluid" ng-controller="ThumbsCtrl">
       <h1 class="thumb">%%TITLE%%</h1>
       <ul class="thumb" id="thumbs">
-        <li ng-repeat="img in images">
-          <div ng-if="img.type!=='page'">
-            <img  id={{img.md5}} alt="{{img.l}}"
-              width="{{img.th_w}}" height="{{img.th_h}}"
-              src="thumb/{{img.md5}}.jpg" />
-          </div>
-          <div ng-if"img.type==='page'">
-            <span id={{img.md5}}>{{img.text}}</span>
-          </div>
+        <li ng-repeat="item in images">
+          <div ng-include="tplUrls[item.type]" item-info="item"></div>
         </li>
       </ul>
     </div>

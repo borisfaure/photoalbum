@@ -433,6 +433,10 @@ App.controller('ThumbsCtrl',
     function ($scope, $http, $location, $window) {
 
     $scope.images = [];
+    $scope.tplUrls = {
+        img: '/img_thumb.html',
+        page: '/page_thumb.html'
+    };
 
     $http.get('images.json').then(function(response) {
         $scope.images = response.data;

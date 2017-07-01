@@ -295,7 +295,8 @@ var genOneThumbnail = function (cfg, pos, img, images, onDone) {
                         l_w: img.l_w,
                         l_h: img.l_h,
                         th_w: img.th_w,
-                        th_h: img.th_h
+                        th_h: img.th_h,
+                        type: 'img'
                     };
                     images[pos] = o;
                     onDone();
@@ -322,7 +323,8 @@ var genOneThumbnail = function (cfg, pos, img, images, onDone) {
                     l_w: img.l_w,
                     l_h: img.l_h,
                     th_w: img.th_w,
-                    th_h: img.th_h
+                    th_h: img.th_h,
+                    type: 'img'
                 };
                 images[pos] = o;
                 onDone();
@@ -542,6 +544,7 @@ var doRender = function (cfg, doGenJSON, onDone) {
             finish();
             return;
         }
+        img.type = 'img';
 
         var full = function () {
             var dest = path.join(cfg.out, 'full',  img.md5 + '.jpg');
