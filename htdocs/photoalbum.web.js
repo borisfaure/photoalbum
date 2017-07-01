@@ -427,19 +427,94 @@
 
 
 
-var App = angular.module('App', []);
+var App = angular.module('App', ['angular-inview']);
+
+App.directive('fullpage', function ($window) {
+    return function (scope, element, attrs) {
+        var onResize = function () {
+            var divHeight = element.height();
+            var divWidth = element.width();
+            var winHeight = $window.innerHeight;
+            var winWidth = $window.innerWidth;
+            if (divHeight != winHeight || divWidth != winWidth) {
+                element.css({
+                    width: winWidth + 'px',
+                    height: winHeight + 'px'
+                });
+            }
+        };
+        var windowElement = angular.element($window);
+        windowElement.resize(onResize);
+        onResize();
+    }
+});
+
+App.directive('fullimg', function ($window) {
+    return function (scope, element, attrs) {
+        var onResize = function () {
+            var imgHeight = element.height();
+            var imgWidth = element.height();
+            var winHeight = $window.innerHeight;
+            var winWidth = $window.innerWidth;
+            if ((imgWidth > 1.5 * imgHeight) ||(imgHeight > imgWidth)) {
+                element.css({
+                    width: 'auto',
+                    height: winHeight + 'px'
+                });
+            } else {
+                element.css({
+                    height: 'auto',
+                    width: winWidth + 'px'
+                });
+            }
+        };
+        var windowElement = angular.element($window);
+        windowElement.resize(onResize);
+        element.bind('load', function () {
+            onResize();
+        });
+    }
+});
 
 App.controller('ThumbsCtrl',
     function ($scope, $http, $location, $window) {
 
-    $scope.images = [];
+    $scope.items = [];
     $scope.tplUrls = {
         img: '/img_thumb.html',
         page: '/page_thumb.html'
     };
 
     $http.get('images.json').then(function(response) {
-        $scope.images = response.data;
+        $scope.items = response.data;
     });
 
+});
+
+App.controller('DiaporamaCtrl',
+    function ($scope, $sce, $http, $location, $window) {
+
+    $scope.items = [];
+    $scope.tplUrls = {
+        img: '/img.html',
+        page: '/page.html'
+    };
+    $scope.trustAsHtml = function (x) {
+        //return $sce.trustAsHtml(x);
+        return $sce.trustAsHtml("<pre>lolol</pre>");
+    };
+
+    $http.get('images.json').then(function(response) {
+        $scope.items = [];
+        var list = response.data;
+        for(var i = 0, size = list.length; i < size ; i++){
+            var item = list[i];
+            item.onVisible = function() {
+                console.log("foo");
+                console.log(item);
+                item.large = "large/"+item.md5+".jpeg";
+            };
+            $scope.items.push(item);
+        }
+    });
 });

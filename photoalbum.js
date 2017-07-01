@@ -45,6 +45,7 @@ var indexFiles = [
     'pause.png',
     'loading.gif',
     'jquery.viewport.js',
+    'angular-inview.js',
     'photoalbum.web.js',
     'brickwall.png'
 ];
