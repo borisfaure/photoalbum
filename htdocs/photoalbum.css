@@ -157,14 +157,27 @@ a.position {
     margin: 0px 10px 0px 0px;
 }
 
-div#overlay {
+div#overlaytop {
+    position:absolute;
+    top:0;
+    background: #161616;
+    opacity: 0.9;
+}
+
+div#overlaybottom {
     position:absolute;
     bottom:0;
     background: #161616;
     opacity: 0.9;
 }
 
-.centered {
-    margin:auto;
+div.diaporama {
     display: block;
+}
+
+img.main {
+    position: relative;
+    margin: 0px auto;
+    display: block;
+    image-rendering: optimizequality;
 }

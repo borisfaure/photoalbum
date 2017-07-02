@@ -20,9 +20,9 @@
     </script>
 
     <script type="text/ng-template" id="/img.html">
-<div>
+<div class="diaporama">
   <img data-lw="{{item.l_w}}" data-lh="{{item.l_h}}" fullimg alt="{{item.l}}"
-       src="{{item.large}}" class="centered" />
+       src="{{item.large}}" class="main" />
 </div>
     </script>
     <script type="text/ng-template" id="/page.html">
@@ -69,7 +69,20 @@ src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
           <div ng-include="tplUrls[item.type]" item-info="item"></div>
         </div>
       </div>
-      <div id="overlay">
+      <div id="overlaytop">
+        <div ng-show="mdPos != null">
+          <img width=32 height=32 src="pos.png" />
+          <a target="_blank"
+             href="http://www.openstreetmap.org/?mlat={{mdPos.lat}}&mlon={{mdPos.lon}}#map=14/{{mdPos.lat}}'/'{{mdPos.lon}}">
+            <label>{{mdPos.lat}},{{mdPos.lon}}</label>
+          </a>
+        </div>
+        <div ng-show="mdDateStr != ''">
+          <img width=32 height=32 src="time.png" />
+          <label>{{mdDateStr}}</label>
+        </div>
+      </div>
+      <div id="overlaybottom">
         <div ng-bind-html="legend"></div>
       </div>
     </div>

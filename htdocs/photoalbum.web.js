@@ -439,7 +439,7 @@ App.directive('fullimg', function ($window) {
             var ratio = imgHeight / imgWidth;
             var maximiseHeight = true;
 
-            if (imgWidth > 1.5 * imgHeight) {
+            if (imgWidth > 1.8 * imgHeight) {
                 // panorama
             } else {
                 maximiseHeight = ((winHeight / ratio) < winWidth);
@@ -483,6 +483,8 @@ App.controller('DiaporamaCtrl',
     function ($scope, $sce, $http, $location, $window, $timeout) {
 
     $scope.items = [];
+    $scope.mdPos = null;
+    $scope.mdDateStr = '';
     $scope.tplUrls = {
         img: '/img.html',
         page: '/page.html'
@@ -507,6 +509,9 @@ App.controller('DiaporamaCtrl',
                     if (item.type !== 'page' && item.l) {
                         l = markdown.toHTML(item.l);
                     }
+                    $scope.mdPos = item.md.pos;
+                    $scope.mdDateStr = item.md.dateStr;
+                    console.log(item.md);
                     l = $sce.trustAsHtml(l);
                     $scope.legend = l;
                 });
@@ -524,6 +529,12 @@ App.controller('DiaporamaCtrl',
         for(var i = 0, size = list.length; i < size ; i++){
             var item = list[i];
             $scope.fullPageOptions.anchors.push('diapo_'+i);
+            if (item.md === undefined)
+                item.md = {}
+            if (item.md.pos == undefined)
+                item.md.pos = null;
+            if (item.md.dateStr == undefined)
+                item.md.dateStr = ''
 
             items.push(item);
         }
