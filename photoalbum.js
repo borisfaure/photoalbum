@@ -46,6 +46,9 @@ var indexFiles = [
     'loading.gif',
     'jquery.viewport.js',
     'angular-inview.js',
+    'angular-fullpage.min.js',
+    'jquery.fullpage.min.js',
+    'jquery.fullpage.min.css',
     'photoalbum.web.js',
     'brickwall.png'
 ];

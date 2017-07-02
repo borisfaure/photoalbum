@@ -427,27 +427,7 @@
 
 
 
-var App = angular.module('App', ['angular-inview']);
-
-App.directive('fullpage', function ($window) {
-    return function (scope, element, attrs) {
-        var onResize = function () {
-            var divHeight = element.height();
-            var divWidth = element.width();
-            var winHeight = $window.innerHeight;
-            var winWidth = $window.innerWidth;
-            if (divHeight != winHeight || divWidth != winWidth) {
-                element.css({
-                    width: winWidth + 'px',
-                    height: winHeight + 'px'
-                });
-            }
-        };
-        var windowElement = angular.element($window);
-        windowElement.resize(onResize);
-        onResize();
-    }
-});
+var App = angular.module('App', ['angular-inview', 'fullPage.js']);
 
 App.directive('fullimg', function ($window) {
     return function (scope, element, attrs) {
@@ -492,7 +472,7 @@ App.controller('ThumbsCtrl',
 });
 
 App.controller('DiaporamaCtrl',
-    function ($scope, $sce, $http, $location, $window) {
+    function ($scope, $sce, $http, $location, $window, $timeout) {
 
     $scope.items = [];
     $scope.tplUrls = {
@@ -504,17 +484,33 @@ App.controller('DiaporamaCtrl',
         return $sce.trustAsHtml("<pre>lolol</pre>");
     };
 
+    $scope.fullPageOptions = {
+    };
+
     $http.get('images.json').then(function(response) {
-        $scope.items = [];
+        var items = [];
+        $scope.fullPageOptions.anchors = [];
         var list = response.data;
         for(var i = 0, size = list.length; i < size ; i++){
             var item = list[i];
+            $scope.fullPageOptions.anchors.push('diapo_'+i);
             item.onVisible = function() {
-                console.log("foo");
-                console.log(item);
                 item.large = "large/"+item.md5+".jpeg";
             };
-            $scope.items.push(item);
+
+            items.push(item);
+        }
+
+        $scope.items = items;
+
+        var hash = $location.hash();
+        var re = /diapo_(\d+)/i;
+        var found = hash.match(re);
+        if (found) {
+            var slide = parseInt(found[1]) + 1;
+            $timeout(function() {
+                $.fn.fullpage.silentMoveTo(slide);
+            });
         }
     });
 });
