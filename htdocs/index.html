@@ -21,15 +21,14 @@
 
     <script type="text/ng-template" id="/img.html">
 <div>
-  <img height="100000" fullimg alt="{{item.l}}"
-       src="large/{{item.md5}}.jpg"
-       in-view="item.onVisible()" />
+  <img data-lw="{{item.l_w}}" data-lh="{{item.l_h}}" fullimg alt="{{item.l}}"
+       src="{{item.large}}" class="centered" />
 </div>
     </script>
     <script type="text/ng-template" id="/page.html">
 <div>
   <h1>{{item.title}}</h1>
-  <span ng-bind-html="trustAsHtml(item.content)"></span>
+  <span ng-bind-html="trustAsHtml(item.real_content)"></span>
 </div>
     </script>
 
@@ -69,6 +68,9 @@ src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <div class="section" ng-repeat="item in items">
           <div ng-include="tplUrls[item.type]" item-info="item"></div>
         </div>
+      </div>
+      <div id="overlay">
+        <div ng-bind-html="legend"></div>
       </div>
     </div>
   </body>

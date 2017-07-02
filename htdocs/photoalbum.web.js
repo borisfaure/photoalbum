@@ -432,11 +432,19 @@ var App = angular.module('App', ['fullPage.js']);
 App.directive('fullimg', function ($window) {
     return function (scope, element, attrs) {
         var onResize = function () {
-            var imgHeight = element.height();
-            var imgWidth = element.height();
+            var imgHeight = $(element).data('lh');
+            var imgWidth = $(element).data('lw');
             var winHeight = $window.innerHeight;
             var winWidth = $window.innerWidth;
-            if ((imgWidth > 1.5 * imgHeight) ||(imgHeight > imgWidth)) {
+            var ratio = imgHeight / imgWidth;
+            var maximiseHeight = true;
+
+            if (imgWidth > 1.5 * imgHeight) {
+                // panorama
+            } else {
+                maximiseHeight = ((winHeight / ratio) < winWidth);
+            }
+            if (maximiseHeight) {
                 element.css({
                     width: 'auto',
                     height: winHeight + 'px'
@@ -480,11 +488,33 @@ App.controller('DiaporamaCtrl',
         page: '/page.html'
     };
     $scope.trustAsHtml = function (x) {
-        //return $sce.trustAsHtml(x);
         return $sce.trustAsHtml("<pre>lolol</pre>");
     };
 
+
+
+    $scope.legend = $sce.trustAsHtml("");
+    $sce.getTrustedHtml($scope.legend);
+
     $scope.fullPageOptions = {
+        afterLoad: function(anchorLink, index) {
+            if (index >= 1) {
+                $timeout(function(){
+                    var item = $scope.items[index - 1];
+                    if (item.type == 'img')
+                        item.large = "large/"+item.md5+".jpg";
+                    var l = "";
+                    if (item.type !== 'page' && item.l) {
+                        l = markdown.toHTML(item.l);
+                    }
+                    l = $sce.trustAsHtml(l);
+                    $scope.legend = l;
+                });
+            }
+        },
+        onLeave: function() {
+        },
+        scrollingSpeed: 200,
     };
 
     $http.get('images.json').then(function(response) {
