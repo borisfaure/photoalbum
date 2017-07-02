@@ -427,7 +427,7 @@
 
 
 
-var App = angular.module('App', ['angular-inview', 'fullPage.js']);
+var App = angular.module('App', ['fullPage.js']);
 
 App.directive('fullimg', function ($window) {
     return function (scope, element, attrs) {
@@ -494,9 +494,6 @@ App.controller('DiaporamaCtrl',
         for(var i = 0, size = list.length; i < size ; i++){
             var item = list[i];
             $scope.fullPageOptions.anchors.push('diapo_'+i);
-            item.onVisible = function() {
-                item.large = "large/"+item.md5+".jpeg";
-            };
 
             items.push(item);
         }
