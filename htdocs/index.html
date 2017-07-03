@@ -55,7 +55,7 @@
             <div ng-include="tplSlidesUrls[item.type]" item-info="item"></div>
           </div>
         </div>
-        <div id="overlaytop">
+        <div id="overlaytopleft">
           <div ng-show="mdPos != null">
             <img width=32 height=32 src="pos.png" />
             <a target="_blank"
@@ -67,6 +67,11 @@
             <img width=32 height=32 src="time.png" />
             <label>{{mdDateStr}}</label>
           </div>
+        </div>
+        <div id="overlaytopright">
+          <a href="#" ng-click="displayThumbs();">
+            <img width=32 height=32 src="thumbs.png" />
+          </a>
         </div>
         <div id="overlaybottom">
           <div ng-bind-html="legend"></div>

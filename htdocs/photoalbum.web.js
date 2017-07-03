@@ -467,11 +467,6 @@ App.directive('fullimg', function ($window) {
 App.controller('MainCtrl',
     function ($scope, $sce, $http, $location, $window, $timeout) {
 
-    $scope.tplUrls = {
-        img: '/img_thumb.html',
-        page: '/page_thumb.html'
-    };
-
     $scope.mode = '/empty.html';
     $scope.thumbs = [];
     $scope.diapos = [];
@@ -493,15 +488,6 @@ App.controller('MainCtrl',
 
     $scope.legend = $sce.trustAsHtml("");
     $sce.getTrustedHtml($scope.legend);
-
-    var displayThumbs = function() {
-        if ($.fn.fullpage.destroy) {
-            $.fn.fullpage.destroy('all');
-        }
-        $scope.diapos = [];
-        $scope.thumbs = items;
-        $scope.mode = '/thumbs.html';
-    };
 
     $scope.fullpageOptions = {
         anchors: [],
@@ -529,6 +515,16 @@ App.controller('MainCtrl',
     };
 
 
+    $scope.displayThumbs = function() {
+        //if ($.fn.fullpage.destroy) {
+        //    $.fn.fullpage.destroy('all');
+        //}
+        $scope.diapos = [];
+        $scope.thumbs = items;
+        $scope.mode = '/thumbs.html';
+        console.log("to thumbs!");
+    };
+
     var displayDiaporama = function(slide) {
 
         $scope.thumbs = [];
@@ -543,7 +539,7 @@ App.controller('MainCtrl',
 
     $http.get('images.json').then(function(response) {
         angular.forEach(response.data, function(item, i) {
-            item.idx = i;
+            item.idx = i+1;
             item.toDiapo = function() {
                 displayDiaporama(item.idx);
             }
@@ -566,7 +562,7 @@ App.controller('MainCtrl',
             var slide = parseInt(found[1]) + 1;
             displayDiaporama(slide);
         } else {
-            displayThumbs();
+            $scope.displayThumbs();
         }
     });
 });

@@ -157,9 +157,17 @@ a.position {
     margin: 0px 10px 0px 0px;
 }
 
-div#overlaytop {
+div#overlaytopleft {
     position:absolute;
     top:0;
+    left:0;
+    background: #161616;
+    opacity: 0.9;
+}
+div#overlaytopright {
+    position:absolute;
+    top:0;
+    right:0;
     background: #161616;
     opacity: 0.9;
 }
