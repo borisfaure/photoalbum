@@ -457,52 +457,58 @@ App.directive('fullimg', function ($window) {
             }
         };
         var windowElement = angular.element($window);
-        windowElement.resize(onResize);
+        windowElement.bind('resize', onResize);
         element.bind('load', function () {
             onResize();
         });
     }
 });
 
-App.controller('ThumbsCtrl',
-    function ($scope, $http, $location, $window) {
+App.controller('MainCtrl',
+    function ($scope, $sce, $http, $location, $window, $timeout) {
 
-    $scope.items = [];
     $scope.tplUrls = {
         img: '/img_thumb.html',
         page: '/page_thumb.html'
     };
 
-    $http.get('images.json').then(function(response) {
-        $scope.items = response.data;
-    });
+    $scope.mode = '/empty.html';
+    $scope.thumbs = [];
+    $scope.diapos = [];
+    var items = [];
 
-});
-
-App.controller('DiaporamaCtrl',
-    function ($scope, $sce, $http, $location, $window, $timeout) {
-
-    $scope.items = [];
     $scope.mdPos = null;
     $scope.mdDateStr = '';
-    $scope.tplUrls = {
-        img: '/img.html',
-        page: '/page.html'
+    $scope.tplThumbsUrls = {
+        img: '/img_thumb.html',
+        page: '/page_thumb.html'
+    };
+    $scope.tplSlidesUrls = {
+        img: '/img_slide.html',
+        page: '/page_slide.html'
     };
     $scope.trustAsHtml = function (x) {
         return $sce.trustAsHtml("<pre>lolol</pre>");
     };
 
-
-
     $scope.legend = $sce.trustAsHtml("");
     $sce.getTrustedHtml($scope.legend);
 
-    $scope.fullPageOptions = {
+    var displayThumbs = function() {
+        if ($.fn.fullpage.destroy) {
+            $.fn.fullpage.destroy('all');
+        }
+        $scope.diapos = [];
+        $scope.thumbs = items;
+        $scope.mode = '/thumbs.html';
+    };
+
+    $scope.fullpageOptions = {
+        anchors: [],
         afterLoad: function(anchorLink, index) {
             if (index >= 1) {
                 $timeout(function(){
-                    var item = $scope.items[index - 1];
+                    var item = items[index - 1];
                     if (item.type == 'img')
                         item.large = "large/"+item.md5+".jpg";
                     var l = "";
@@ -511,7 +517,6 @@ App.controller('DiaporamaCtrl',
                     }
                     $scope.mdPos = item.md.pos;
                     $scope.mdDateStr = item.md.dateStr;
-                    console.log(item.md);
                     l = $sce.trustAsHtml(l);
                     $scope.legend = l;
                 });
@@ -519,16 +524,30 @@ App.controller('DiaporamaCtrl',
         },
         onLeave: function() {
         },
-        scrollingSpeed: 200,
+        animateAnchor: false,
+        scrollingSpeed: 200
+    };
+
+
+    var displayDiaporama = function(slide) {
+
+        $scope.thumbs = [];
+        $scope.diapos = items;
+        $scope.mode = '/diaporama.html';
+        $timeout(function() {
+            if (slide > 0) {
+                $.fn.fullpage.silentMoveTo(slide);
+            }
+        });
     };
 
     $http.get('images.json').then(function(response) {
-        var items = [];
-        $scope.fullPageOptions.anchors = [];
-        var list = response.data;
-        for(var i = 0, size = list.length; i < size ; i++){
-            var item = list[i];
-            $scope.fullPageOptions.anchors.push('diapo_'+i);
+        angular.forEach(response.data, function(item, i) {
+            item.idx = i;
+            item.toDiapo = function() {
+                displayDiaporama(item.idx);
+            }
+            $scope.fullpageOptions.anchors.push('diapo_'+i);
             if (item.md === undefined)
                 item.md = {}
             if (item.md.pos == undefined)
@@ -537,18 +556,17 @@ App.controller('DiaporamaCtrl',
                 item.md.dateStr = ''
 
             items.push(item);
-        }
+        });
 
-        $scope.items = items;
 
         var hash = $location.hash();
         var re = /diapo_(\d+)/i;
         var found = hash.match(re);
         if (found) {
             var slide = parseInt(found[1]) + 1;
-            $timeout(function() {
-                $.fn.fullpage.silentMoveTo(slide);
-            });
+            displayDiaporama(slide);
+        } else {
+            displayThumbs();
         }
     });
 });
