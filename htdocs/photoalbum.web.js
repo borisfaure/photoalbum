@@ -427,7 +427,7 @@
 
 
 
-var App = angular.module('App', ['fullPage.js']);
+var App = angular.module('App', []);
 
 App.directive('fullimg', function ($window) {
     return function (scope, element, attrs) {
@@ -464,6 +464,25 @@ App.directive('fullimg', function ($window) {
     }
 });
 
+var fullpageOptions = {
+    anchors: [],
+    animateAnchor: false,
+    scrollingSpeed: 200
+};
+
+var fullpageRebuild = function () {
+    if ($.fn.fullpage.destroy) {
+        console.log("destroy");
+        $.fn.fullpage.destroy('all');
+    }
+    console.log("rebuild");
+    console.log(fullpageOptions);
+    console.log($('#fullpage'));
+    $('#fullpage').fullpage(fullpageOptions);
+    console.log($.fn.fullpage.silentMoveTo);
+}
+
+
 App.controller('MainCtrl',
     function ($scope, $sce, $http, $location, $window, $timeout) {
 
@@ -482,21 +501,18 @@ App.controller('MainCtrl',
         img: '/img_slide.html',
         page: '/page_slide.html'
     };
-    $scope.trustAsHtml = function (x) {
-        return $sce.trustAsHtml("<pre>lolol</pre>");
-    };
 
     $scope.legend = $sce.trustAsHtml("");
     $sce.getTrustedHtml($scope.legend);
 
-    $scope.fullpageOptions = {
-        anchors: [],
-        afterLoad: function(anchorLink, index) {
-            if (index >= 1) {
-                $timeout(function(){
-                    var item = items[index - 1];
-                    if (item.type == 'img')
-                        item.large = "large/"+item.md5+".jpg";
+    $scope.debug = "";
+    var cur_item = null;
+    fullpageOptions.afterLoad = function(anchorLink, index) {
+        if (index >= 1) {
+            $timeout(function(){
+                var item = items[index - 1];
+                if (item.type == 'img') {
+                    item.large = "large/"+item.md5+".jpg";
                     var l = "";
                     if (item.type !== 'page' && item.l) {
                         l = markdown.toHTML(item.l);
@@ -505,20 +521,33 @@ App.controller('MainCtrl',
                     $scope.mdDateStr = item.md.dateStr;
                     l = $sce.trustAsHtml(l);
                     $scope.legend = l;
-                });
-            }
-        },
-        onLeave: function() {
-        },
-        animateAnchor: false,
-        scrollingSpeed: 200
+                } else {
+                    $scope.legend = $sce.trustAsHtml("");
+                    $scope.mdPos = null;
+                    $scope.mdDateStr = '';
+                    item.real_content = $sce.trustAsHtml(item.content);
+                    $scope.debug = item.content;
+                }
+                cur_item = item;
+                console.log("after load");
+                console.log(cur_item);
+            });
+        }
+    };
+    fullpageOptions.onLeave = function() {
+        console.log("leave");
+        console.log(cur_item);
+        if (cur_item) {
+            $timeout(function() {
+                cur_item.real_content = $sce.trustAsHtml("");
+            });
+        }
     };
 
-
     $scope.displayThumbs = function() {
-        //if ($.fn.fullpage.destroy) {
-        //    $.fn.fullpage.destroy('all');
-        //}
+        if ($.fn.fullpage.destroy) {
+            $.fn.fullpage.destroy('all');
+        }
         $scope.diapos = [];
         $scope.thumbs = items;
         $scope.mode = '/thumbs.html';
@@ -530,20 +559,26 @@ App.controller('MainCtrl',
         $scope.thumbs = [];
         $scope.diapos = items;
         $scope.mode = '/diaporama.html';
-        $timeout(function() {
-            if (slide > 0) {
-                $.fn.fullpage.silentMoveTo(slide);
-            }
+        $scope.$evalAsync(function() {
+            $timeout(function() {
+                fullpageRebuild();
+                if (slide > 0) {
+                    if ($.fn.fullpage.silentMoveTo) {
+                        $.fn.fullpage.silentMoveTo(slide);
+                    }
+                }
+            });
         });
     };
 
     $http.get('images.json').then(function(response) {
+        $
         angular.forEach(response.data, function(item, i) {
             item.idx = i+1;
             item.toDiapo = function() {
                 displayDiaporama(item.idx);
             }
-            $scope.fullpageOptions.anchors.push('diapo_'+i);
+            fullpageOptions.anchors.push('diapo_'+i);
             if (item.md === undefined)
                 item.md = {}
             if (item.md.pos == undefined)

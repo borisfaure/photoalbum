@@ -45,8 +45,7 @@ var indexFiles = [
     'pause.png',
     'loading.gif',
     'jquery.viewport.js',
-    'angular-fullpage.min.js',
-    'jquery.fullpage.min.js',
+    'jquery.fullpage.js',
     'jquery.fullpage.min.css',
     'photoalbum.web.js',
     'brickwall.png'
