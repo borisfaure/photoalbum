@@ -441,6 +441,9 @@ App.directive('fullimg', function ($window) {
 
             if (imgWidth > 1.8 * imgHeight) {
                 // panorama
+                var $parent = $(element).parent();
+                $parent.addClass("panorama");
+                $parent.paver();
             } else {
                 maximiseHeight = ((winHeight / ratio) < winWidth);
             }
@@ -472,14 +475,9 @@ var fullpageOptions = {
 
 var fullpageRebuild = function () {
     if ($.fn.fullpage.destroy) {
-        console.log("destroy");
         $.fn.fullpage.destroy('all');
     }
-    console.log("rebuild");
-    console.log(fullpageOptions);
-    console.log($('#fullpage'));
     $('#fullpage').fullpage(fullpageOptions);
-    console.log($.fn.fullpage.silentMoveTo);
 }
 
 
@@ -491,6 +489,7 @@ App.controller('MainCtrl',
     $scope.diapos = [];
     var items = [];
 
+    $scope.showOverlays = true;
     $scope.mdPos = null;
     $scope.mdDateStr = '';
     $scope.tplThumbsUrls = {
@@ -520,6 +519,7 @@ App.controller('MainCtrl',
                     $scope.mdDateStr = item.md.dateStr;
                     l = $sce.trustAsHtml(l);
                     $scope.legend = l;
+                    $scope.showOverlays = true;
                 } else {
                     $scope.legend = $sce.trustAsHtml("");
                     $scope.mdPos = null;
@@ -527,14 +527,10 @@ App.controller('MainCtrl',
                     item.real_content = $sce.trustAsHtml(item.content);
                 }
                 cur_item = item;
-                console.log("after load");
-                console.log(cur_item);
             });
         }
     };
     fullpageOptions.onLeave = function() {
-        console.log("leave");
-        console.log(cur_item);
         if (cur_item) {
             $timeout(function() {
                 cur_item.real_content = $sce.trustAsHtml("");
@@ -549,7 +545,6 @@ App.controller('MainCtrl',
         $scope.diapos = [];
         $scope.thumbs = items;
         $scope.mode = '/thumbs.html';
-        console.log("to thumbs!");
     };
 
     var displayDiaporama = function(slide) {
@@ -568,6 +563,10 @@ App.controller('MainCtrl',
             });
         });
     };
+
+    $scope.toggleOverlays = function() {
+        $scope.showOverlays = !$scope.showOverlays;
+    }
 
     $http.get('images.json').then(function(response) {
         $

@@ -6,6 +6,7 @@
     <link type="text/css" rel="stylesheet" href="photoalbum.css">
     <link type="text/css" rel="stylesheet" href="jquery.fullpage.min.css">
     <link type="text/css" rel="stylesheet" href="leaflet.css" />
+    <link type="text/css" rel="stylesheet" href="paver.min.css" />
     <link type="text/css" rel="stylesheet" href="elevation.css" />
     <script type="text/javascript">
       var translations = %%TRANSLATIONS%%;
@@ -26,8 +27,12 @@
 
     <script type="text/ng-template" id="/img_slide.html">
 <div class="diaporama">
+  <a ng-click="toggleOverlays();" href="#">
+  <div>
   <img data-lw="{{item.l_w}}" data-lh="{{item.l_h}}" fullimg alt="{{item.l}}"
        src="{{item.large}}" class="main" />
+  </div>
+  </a>
 </div>
     </script>
     <script type="text/ng-template" id="/page_slide.html">
@@ -58,7 +63,7 @@
             <div ng-include="tplSlidesUrls[item.type]" item-info="item"></div>
           </div>
         </div>
-        <div id="overlaytopleft">
+        <div ng-show="showOverlays" id="overlaytopleft">
           <div ng-show="mdPos != null">
             <img width=32 height=32 src="pos.png" />
             <a target="_blank"
@@ -71,12 +76,12 @@
             <label>{{mdDateStr}}</label>
           </div>
         </div>
-        <div id="overlaytopright">
+        <div ng-show="showOverlays" id="overlaytopright">
           <a href="#" ng-click="displayThumbs();">
             <img width=32 height=32 src="thumbs.png" />
           </a>
         </div>
-        <div id="overlaybottom">
+        <div ng-show="showOverlays" id="overlaybottom">
           <div ng-bind-html="legend"></div>
         </div>
       </div>
@@ -90,6 +95,8 @@
     <script type="text/javascript" src="markdown.js"></script>
     <script type='text/javascript' src="angular.min.js"></script>
     <script type="text/javascript" src="jquery.fullpage.min.js"></script>
+    <script type="text/javascript" src="jquery.ba-throttle-debounce.min.js"></script>
+    <script type="text/javascript" src="jquery.paver.min.js"></script>
     <script type="text/javascript" src="photoalbum.web.js"></script>
   </head>
   <body>

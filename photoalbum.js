@@ -47,6 +47,9 @@ var indexFiles = [
     'jquery.viewport.js',
     'jquery.fullpage.min.js',
     'jquery.fullpage.min.css',
+    'paver.min.css',
+    'jquery.paver.min.js',
+    'jquery.ba-throttle-debounce.min.js',
     'photoalbum.web.js',
     'brickwall.png'
 ];
@@ -559,18 +562,12 @@ var doRender = function (cfg, doGenJSON, onDone) {
                 var o = {
                     srcPath: img.path,
                     dstPath: path.join(cfg.out, 'large', img.md5 + '.jpg'),
-                    height: 768,
+                    height: 1200,
                     strip: true,
                     progressive: true
                 };
-                var d = 1.0;
-                while (img.height / d > 700) {
-                    d *= 2;
-                }
-                if (d > 1) {
-                    d /= 2;
-                }
-                o.height = img.height / d;
+                var d = img.height / 1200;
+                o.height = 1200;
                 o.width = img.width / d;
 
                 fs.exists(o.dstPath, function (exists) {
