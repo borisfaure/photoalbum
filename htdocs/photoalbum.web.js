@@ -505,7 +505,6 @@ App.controller('MainCtrl',
     $scope.legend = $sce.trustAsHtml("");
     $sce.getTrustedHtml($scope.legend);
 
-    $scope.debug = "";
     var cur_item = null;
     fullpageOptions.afterLoad = function(anchorLink, index) {
         if (index >= 1) {
@@ -526,7 +525,6 @@ App.controller('MainCtrl',
                     $scope.mdPos = null;
                     $scope.mdDateStr = '';
                     item.real_content = $sce.trustAsHtml(item.content);
-                    $scope.debug = item.content;
                 }
                 cur_item = item;
                 console.log("after load");
