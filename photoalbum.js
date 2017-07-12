@@ -50,6 +50,7 @@ var indexFiles = [
     'paver.min.css',
     'jquery.paver.min.js',
     'jquery.ba-throttle-debounce.min.js',
+    'angular.min.js',
     'photoalbum.web.js',
     'brickwall.png'
 ];
