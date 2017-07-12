@@ -68,7 +68,6 @@ var bothFiles = [
     'elevation.js',
     'elevation.css',
     'd3.min.js',
-    'Makefile',
     'marker-icon.png',
     'marker-shadow.png',
     'pin-icon-start.png',
