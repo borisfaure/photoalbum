@@ -73,7 +73,8 @@ var bothFiles = [
     'marker-shadow.png',
     'pin-icon-start.png',
     'pin-icon-end.png',
-    'pin-shadow.png'
+    'pin-shadow.png',
+    'Makefile'
 ];
 
 var directories = [
