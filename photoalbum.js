@@ -260,7 +260,7 @@ var genJSON = function (cfg, images, onDone) {
 /* }}} */
 /* {{{ genThumbs */
 
-var genOneThumbnail = function (cfg, pos, img, images, onDone) {
+var genOneThumbnail = function (cfg, pos, img, images, isPng, onDone) {
     if (img.type === 'page') {
         images[pos] = img;
         onDone();
@@ -273,7 +273,11 @@ var genOneThumbnail = function (cfg, pos, img, images, onDone) {
             return;
         }
 
-        var thumbPath = path.join(cfg.out, 'thumb', img.md5 + '.jpg');
+        var ext = '.jpg';
+        if (isPng) {
+            ext = '.png';
+        }
+        var thumbPath = path.join(cfg.out, 'thumb', img.md5 + ext);
         var resize = function () {
             var o = {
                 width: 256,
@@ -340,7 +344,7 @@ var genOneThumbnail = function (cfg, pos, img, images, onDone) {
     });
 };
 
-var genThumbs = function (cfg, onEnd) {
+var genThumbs = function (cfg, onEnd, isPng) {
     var i;
     var done = 0;
     var images = [];
@@ -362,7 +366,7 @@ var genThumbs = function (cfg, onEnd) {
                 onDone(images);
             }
         };
-        genOneThumbnail(cfg, pos, img, images, finish);
+        genOneThumbnail(cfg, pos, img, images, isPng, finish);
     };
 
     for (i = 0; i < NB_WORKERS; i++) {
@@ -522,7 +526,7 @@ var genMetadata = function (img) {
 /* }}} */
 /* {{{ doRender */
 
-var doRender = function (cfg, doGenJSON, onDone) {
+var doRender = function (cfg, doGenJSON, isPng, onDone) {
     var i;
     var done = 0;
     var images = [];
@@ -559,12 +563,18 @@ var doRender = function (cfg, doGenJSON, onDone) {
 
         var large = function () {
             var action = function () {
+                var ext = '.jpg';
+                var quality = 90;
+                if (isPng) {
+                    ext = '.png';
+                    quality = 100;
+                }
                 var o = {
                     srcPath: img.path,
-                    dstPath: path.join(cfg.out, 'large', img.md5 + '.jpg'),
+                    dstPath: path.join(cfg.out, 'large', img.md5 + ext),
                     height: 1200,
                     strip: true,
-                    progressive: true
+                    quality: quality
                 };
                 var d = img.height / 1200;
                 o.height = 1200;
@@ -611,7 +621,7 @@ var doRender = function (cfg, doGenJSON, onDone) {
 
         };
 
-        genOneThumbnail(cfg, pos, img, images, large);
+        genOneThumbnail(cfg, pos, img, images, isPng, large);
     };
 
 
@@ -951,7 +961,7 @@ switch (args[0]) {
                            args[1] + "' to start a server to edit the album\n");
             });
         };
-        genThumbs(cfg, onDone);
+        genThumbs(cfg, onDone, false);
     });
     break;
   case "server":
@@ -973,7 +983,15 @@ switch (args[0]) {
   case "render":
     getJSONFromPath(args[1], function (cfg) {
         setup(cfg, false);
-        doRender(cfg, true, function () {
+        doRender(cfg, true, false, function () {
+            saveCfg(args[1], cfg);
+        });
+    });
+    break;
+  case "renderpng":
+    getJSONFromPath(args[1], function (cfg) {
+        setup(cfg, false);
+        doRender(cfg, true, true, function () {
             saveCfg(args[1], cfg);
         });
     });
