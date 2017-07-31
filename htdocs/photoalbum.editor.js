@@ -91,7 +91,6 @@ var pageFromCfg = function(page) {
 };
 var addPage = function(page) {
     var $thumbs = $('#thumbs');
-    console.log($thumbs);
     var $div = pageFromCfg(page);
     $thumbs.prepend($div);
 };
@@ -195,6 +194,10 @@ var displayThumbs = function () {
             var $date = $('<div />', {
                 'class': 'other date'
             });
+            var $model =  $('<label />');
+            if (img.metadata && img.metadata.model) {
+                $model.text(img.metadata.model);
+            }
             if (img.metadata && img.metadata.dateTime) {
                 var m = moment(img.metadata.dateTime);
                 if (cfg.time_delta && cfg.time_delta !== 0) {
@@ -298,7 +301,7 @@ var displayThumbs = function () {
                 'class': 'clear'
             });
 
-            $div.append($fullLink, $editButton, $removeButton, $position, $date, $legend, $clear);
+            $div.append($fullLink, $editButton, $removeButton, $model, $position, $date, $legend, $clear);
         }
         ul.push($div);
     });
@@ -364,6 +367,52 @@ var regenCfg = function () {
 
 $(document).ready(function() {
 
+    var timeDelta = function () {
+        var models = cfg.time_delta_by_model || {};
+        cfg.time_delta_by_model = models;
+        $.each(cfg.images, function(index, img) {
+            if (img.type === 'page') {
+                return;
+            }
+            if (img.metadata && img.metadata.model &&
+                !(img.metadata.model in models)) {
+                models[img.metadata.model] = 0;
+            }
+        });
+        var $models = [];
+        $.each(models, function (key, value) {
+            var $d = $('<div />');
+            var $l = $('<label />', {text: key});
+            var $i = $('<input type="text"/>');
+            $i.change(function() {
+                var v = $(this).val();
+                models[key] = v;
+                var $thumbs = $('#thumbs');
+                var children = $thumbs.children();
+                $.each(children, function (index, child) {
+                    var $child = $(child);
+                    var img = $child.data('cfg');
+                    if (img.metadata && img.metadata.dateTime && img.metadata.model
+                        && img.metadata.model === key) {
+                        var m = moment(img.metadata.dateTime);
+                        if (v !== 0) {
+                            if (v > 0)
+                                m = m.add('hours', v)
+                            else
+                                m = m.subtract('hours', -v);
+                        }
+                        var textDate = m.format('YYYY-MM-DD HH:mm');
+                        var $label = $child.find('label.date');
+                        $label.text(textDate);
+                    }
+                });
+            });
+            $i.val(value);
+            $d.append([$l, $i]);
+            $models.push($d);
+        });
+        $('#timeDelta').append($models);
+    };
     var onCfgLoaded = function () {
         $('#title').val(cfg.title || '');
         $('#outDir').val(cfg.out || '');
@@ -377,64 +426,11 @@ $(document).ready(function() {
             l.push($o);
         });
         $('#selectLang').append(l);
-        if (cfg.timezone) {
-            $('#selectTimezone').val(cfg.timezone);
-        }
-        if (cfg.time_delta) {
-            $('#timeDelta').val(cfg.time_delta);
-        }
+        timeDelta();
 
         displayThumbs();
     };
 
-    $('#selectTimezone').change(function() {
-        cfg.timezone = $(this).find('option:selected').val();
-        var $thumbs = $('#thumbs');
-        var children = $thumbs.children();
-        $.each(children, function (index, child) {
-            var $child = $(child);
-            var img = $child.data('cfg');
-            if (img.metadata && img.metadata.dateTime) {
-                var m = moment(img.metadata.dateTime);
-                if (cfg.time_delta && cfg.time_delta !== 0) {
-                    if (cfg.time_delta > 0)
-                        m = m.add('hours', cfg.time_delta);
-                    else
-                        m = m.subtract('hours', -cfg.time_delta);
-                }
-                if (cfg.timezone && cfg.timezone !== "") {
-                    m = m.tz(cfg.timezone);
-                }
-                var textDate = m.format('YYYY-MM-DD HH:mm');
-                var $label = $child.find('label.date');
-                $label.text(textDate);
-            }
-        });
-    });
-    $('#timeDelta').change(function() {
-        cfg.time_delta = $(this).val();
-        var $thumbs = $('#thumbs');
-        var children = $thumbs.children();
-        $.each(children, function (index, child) {
-            var $child = $(child);
-            var img = $child.data('cfg');
-            if (img.metadata && img.metadata.dateTime) {
-                var m = moment(img.metadata.dateTime);
-                if (cfg.time_delta && cfg.time_delta !== 0) {
-                    if (cfg.time_delta > 0)
-                        m = m.add('hours', cfg.time_delta);
-                    else
-                        m = m.subtract('hours', -cfg.time_delta);
-                }
-                if (cfg.timezone && cfg.timezone !== "") {
-                    m = m.tz(cfg.timezone);
-                }
-                var textDate = m.format('YYYY-MM-DD HH:mm');
-                var $label = $child.find('label.date');
-                $label.text(textDate);
-            }
-        });
-    });
 
     $('#genConfigJson').click(function () {
         var $textarea = $('#cfgTextarea');

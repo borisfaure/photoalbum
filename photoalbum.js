@@ -764,7 +764,19 @@ var doReloadMetadata = function (cfg, onDone) {
                 onDone();
                 return;
             }
-            img.metadata = processMetadata(metadata);
+            var metadata = processMetadata(metadata);
+            var md = img.metadata;
+            if (md.model === undefined && metadata.model)
+                md.model = metadata.model;
+            if (md.dateTime == undefined && metadata.dateTime)
+                md.dateTime = metadata.dateTime;
+            if (md.showDate == undefined && metadata.showDate)
+                md.showDate = metadata.showDate;
+            if (md.position == undefined && metadata.position)
+                md.position = metadata.position;
+            if (md.showGPS == undefined && metadata.showGPS)
+                md.showGPS = metadata.showGPS;
+
             finish();
         });
     };
