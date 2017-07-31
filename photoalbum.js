@@ -494,6 +494,8 @@ var processMetadata = function (metadata) {
         md.dateTime = exif.dateTimeOriginal.toJSON();
         md.showDate = true;
     }
+    if (exif.model)
+        md.model = exif.model;
 
     md.position = processGPS(exif);
     if (md.position) {
@@ -725,6 +727,57 @@ var addImages = function (cfg, cfgPath, images, inPath) {
     }
     return deferred.promise;
 };
+/* }}} */
+/* {{{ doReloadMetadata */
+
+var doReloadMetadata = function (cfg, onDone) {
+    var i;
+    var done = 0;
+    var images = [];
+
+    var dealImage = function (cfg, pos, onDone) {
+        var img = cfg.images[pos];
+        if (!img) {
+            return;
+        }
+
+        var finish = function () {
+            done++;
+            console.log('\rworking on images: ' + done + '/' + cfg.images.length);
+            if (pos + NB_WORKERS < cfg.images.length) {
+                dealImage(cfg, pos + NB_WORKERS, onDone);
+            } else if (done == cfg.images.length) {
+                console.log('\n');
+                onDone();
+            }
+        };
+
+        if (img.type === 'page') {
+            images[pos] = img;
+            finish();
+            return;
+        }
+        img.type = 'img';
+        im.readMetadata(img.path, function (err, metadata) {
+            if (err) {
+                console.error(err);
+                onDone();
+                return;
+            }
+            img.metadata = processMetadata(metadata);
+            finish();
+        });
+    };
+
+
+    var itsOver = function () {
+        onDone();
+    };
+    for (i = 0; i < NB_WORKERS; i++) {
+        dealImage(cfg, i, itsOver);
+    }
+};
+
 /* }}} */
 /* {{{ genConfig */
 
@@ -993,6 +1046,13 @@ switch (args[0]) {
     getJSONFromPath(args[1], function (cfg) {
         setup(cfg, false);
         doRender(cfg, true, true, function () {
+            saveCfg(args[1], cfg);
+        });
+    });
+    break;
+  case "reload_metadata":
+    getJSONFromPath(args[1], function (cfg) {
+        doReloadMetadata(cfg, function () {
             saveCfg(args[1], cfg);
         });
     });
