@@ -301,6 +301,8 @@ App.controller('MainCtrl',
                 preloader.preloadImages(img);
             }, 2000);
         }
+        window.scrollTo(0,1);
+
     };
 
     $scope.toggleOverlays = function() {
