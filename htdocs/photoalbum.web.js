@@ -254,6 +254,21 @@ App.controller('MainCtrl',
                     item.real_content = $sce.trustAsHtml(item.content);
                 }
                 cur_item = item;
+                var imgs = [];
+                for ( var i = 0 ; i < 6 ; i++ ) {
+                    if (i < items.length) {
+                        var item = items[i];
+                        if (item.type == 'img' && item.preloaded == false) {
+                            imgs.push("large/"+item.md5+".jpg")
+                            item.preloaded = true;
+                        }
+                    }
+                }
+                if (imgs.length > 0) {
+                    $timeout(function() {
+                        preloader.preloadImages(imgs);
+                    });
+                }
             });
         }
     };
@@ -291,15 +306,6 @@ App.controller('MainCtrl',
         });
         if (!preloaded) {
             preloaded = true;
-            $timeout(function() {
-                var img = [];
-                angular.forEach(items, function(item) {
-                    if (item.type == 'img') {
-                        img.push("large/"+item.md5+".jpg")
-                    }
-                });
-                preloader.preloadImages(img);
-            }, 2000);
         }
         window.scrollTo(0,1);
 
@@ -322,6 +328,7 @@ App.controller('MainCtrl',
                 item.md.pos = null;
             if (item.md.dateStr == undefined)
                 item.md.dateStr = ''
+            item.preloaded = false;
 
             items.push(item);
         });
