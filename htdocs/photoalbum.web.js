@@ -154,7 +154,7 @@ App.factory(
     }
 );
 
-App.directive('fullimg', function ($window) {
+App.directive('fullimg', function ($window, $timeout) {
     return function (scope, element, attrs) {
         var onResize = function () {
             var imgHeight = $(element).data('lh');
@@ -163,19 +163,26 @@ App.directive('fullimg', function ($window) {
             var winWidth = $window.innerWidth;
             var ratio = imgHeight / imgWidth;
             var maximiseHeight = true;
+            var height = winHeight;
 
             if (imgWidth > 1.8 * imgHeight) {
                 // panorama
-                var $parent = $(element).parent();
+                var $element = $(element);
+                var $parent = $element.parent();
                 $parent.addClass("panorama");
-                $parent.paver();
+
+                $element.attr('title', "← panorama →");
+                $timeout(function() {
+                    $parent.paver({meta: true, minimumOverflow: 0});
+                });
+                height = 0.85 * winHeight;
             } else {
                 maximiseHeight = ((winHeight / ratio) < winWidth);
             }
             if (maximiseHeight) {
                 element.css({
                     width: 'auto',
-                    height: winHeight + 'px'
+                    height: height + 'px'
                 });
             } else {
                 element.css({
