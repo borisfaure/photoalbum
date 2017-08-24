@@ -226,8 +226,6 @@ App.controller('MainCtrl',
         page: '/page_slide.html'
     };
 
-    var preloaded = false;
-
     $scope.legend = $sce.trustAsHtml("");
     $sce.getTrustedHtml($scope.legend);
 
@@ -257,7 +255,7 @@ App.controller('MainCtrl',
                 var imgs = [];
                 for ( var i = 0 ; i < 6 ; i++ ) {
                     if (i < items.length) {
-                        var item = items[i];
+                        var item = items[index+i];
                         if (item.type == 'img' && item.preloaded == false) {
                             imgs.push("large/"+item.md5+".jpg")
                             item.preloaded = true;
@@ -304,9 +302,6 @@ App.controller('MainCtrl',
                 }
             });
         });
-        if (!preloaded) {
-            preloaded = true;
-        }
         window.scrollTo(0,1);
 
     };
