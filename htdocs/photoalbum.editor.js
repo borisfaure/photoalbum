@@ -194,7 +194,7 @@ var displayThumbs = function () {
             var $date = $('<div />', {
                 'class': 'other date'
             });
-            var $model =  $('<label />');
+            var $model =  $('<label />', {'class': 'other'});
             if (img.metadata && img.metadata.model) {
                 $model.text(img.metadata.model);
             }
