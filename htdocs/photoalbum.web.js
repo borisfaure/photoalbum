@@ -319,6 +319,7 @@ App.controller('MainCtrl',
 
     $http.get('images.json').then(function(response) {
         angular.forEach(response.data, function(item, i) {
+            item.large = "black_paper.png";
             item.idx = i+1;
             item.toDiapo = function() {
                 displayDiaporama(item.idx);
