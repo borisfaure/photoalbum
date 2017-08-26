@@ -167,7 +167,8 @@ App.directive('fullimg', function ($window, $timeout) {
             var height = winHeight;
             var $element = $(element);
 
-            if ($element.attr('src') === undefined)
+            var src = $element.attr('src');
+            if (src === undefined || src == 'black_paper.png')
                 return;
 
             if (ratio < panorama_ratio) {
