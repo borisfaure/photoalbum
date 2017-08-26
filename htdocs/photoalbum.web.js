@@ -162,12 +162,16 @@ App.directive('fullimg', function ($window, $timeout) {
             var winHeight = $window.innerHeight;
             var winWidth = $window.innerWidth;
             var ratio = imgHeight / imgWidth;
+            var panorama_ratio = winHeight * 0.85 / winWidth;
             var maximiseHeight = true;
             var height = winHeight;
+            var $element = $(element);
 
-            if (imgWidth > 1.8 * imgHeight) {
+            if ($element.attr('src') === undefined)
+                return;
+
+            if (ratio < panorama_ratio) {
                 // panorama
-                var $element = $(element);
                 var $parent = $element.parent();
                 $parent.addClass("panorama");
 
