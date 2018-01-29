@@ -177,57 +177,63 @@ var genHtmlFile = function (cfg, source, onDone) {
 /* {{{ Setup */
 
 var setup = function (cfg, isEditor) {
+    /* mkdir cfg.out if it does not exist */
+    fs.stat(cfg.out, function (err) {
+            if (err) {
+                fs.mkdir(cfg.out);
+            }
 
-    var workHtmlFile = function (filename) {
-        var source = path.join('htdocs', filename);
-        genHtmlFile(cfg, source, function (data) {
-            var dest = path.join(cfg.out, filename);
-            fs.writeFile(dest, data, function(err) {
-                if (err) {
-                    throw (err);
-                }
+        var workHtmlFile = function (filename) {
+            var source = path.join('htdocs', filename);
+            genHtmlFile(cfg, source, function (data) {
+                var dest = path.join(cfg.out, filename);
+                fs.writeFile(dest, data, function(err) {
+                    if (err) {
+                        throw (err);
+                    }
+                });
             });
-        });
-    };
+        };
 
 
-    var copyFilesList = function (l) {
-        var i;
-        for (i in l) {
-            var filename = l[i];
+        var copyFilesList = function (l) {
+            var i;
+            for (i in l) {
+                var filename = l[i];
 
-            /* TODO: check file dates, do 'à la' make */
-            var src = path.join('htdocs', filename);
-            var dst = path.join(cfg.out, filename);
-            var srcStream = fs.createReadStream(src);
-            var dstStream = fs.createWriteStream(dst);
+                /* TODO: check file dates, do 'à la' make */
+                var src = path.join('htdocs', filename);
+                var dst = path.join(cfg.out, filename);
+                var srcStream = fs.createReadStream(src);
+                var dstStream = fs.createWriteStream(dst);
 
-            srcStream.pipe(dstStream);
+                srcStream.pipe(dstStream);
+            }
+        };
+
+        if (isEditor) {
+            copyFilesList(editorFiles);
+            workHtmlFile('editor.html');
+        } else {
+            copyFilesList(indexFiles);
+            workHtmlFile('index.html');
         }
-    };
+        copyFilesList(bothFiles);
 
-    if (isEditor) {
-        copyFilesList(editorFiles);
-        workHtmlFile('editor.html');
-    } else {
-        copyFilesList(indexFiles);
-        workHtmlFile('index.html');
-    }
-    copyFilesList(bothFiles);
-
-    /* mkdir */
-    var i;
-    for (i in directories) {
-        (function () {
-            var dir = directories[i];
-            var p = path.join(cfg.out, dir);
-            fs.stat(p, function (err) {
-                if (err) {
-                    fs.mkdir(p);
-                }
-            });
-        })();
-    }
+        /* mkdir */
+        var i;
+        for (i in directories) {
+            (function () {
+                var dir = directories[i];
+                var p = path.join(cfg.out, dir);
+                fs.stat(p, function (err) {
+                    if (err) {
+                        fs.mkdir(p);
+                    }
+                });
+            })();
+        }
+    });
 };
 
 /* }}} */
