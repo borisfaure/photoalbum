@@ -180,7 +180,7 @@ var setup = function (cfg, isEditor) {
     /* mkdir cfg.out if it does not exist */
     fs.stat(cfg.out, function (err) {
             if (err) {
-                fs.mkdir(cfg.out);
+                fs.mkdirSync(cfg.out);
             }
 
         var workHtmlFile = function (filename) {
@@ -228,7 +228,7 @@ var setup = function (cfg, isEditor) {
                 var p = path.join(cfg.out, dir);
                 fs.stat(p, function (err) {
                     if (err) {
-                        fs.mkdir(p);
+                        fs.mkdirSync(p);
                     }
                 });
             })();
@@ -818,7 +818,7 @@ var genConfig = function(inPath, cfgPath, outDirectory) {
                 fs.stat(json.out, function (err, stats) {
                     console.log("Output dir is set to " + json.out + "\n");
                     if (err) {
-                        fs.mkdir(json.out);
+                        fs.mkdirSync(json.out);
                     }
                     console.log("you can now run '" + process.argv[1] + " editor " +
                                 cfgPath + "' to generate an editor\n");
